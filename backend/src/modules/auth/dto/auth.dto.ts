@@ -12,3 +12,14 @@ export const loginSchema = z.object({
     password: z.string().min(8),
 })
 export class loginDto extends createZodDto(loginSchema) { }
+
+export const jwtPayloadSchema = z.object({
+    sub: z.string(),
+    name: z.string(),
+})
+export type JwtPayload = z.infer<typeof jwtPayloadSchema>
+
+export interface AuthenticatedUser {
+    sub: string;
+    name: string;
+}

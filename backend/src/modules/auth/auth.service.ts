@@ -1,7 +1,7 @@
 import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { DRIZZLE, type DrizzleDB } from "../db/db.constants";
 import { users } from "./schema/schema"
-import { loginDto, registerDto } from "./dto/auth.dto";
+import { loginDto, registerDto, jwtPayloadSchema, type JwtPayload } from "./dto/auth.dto";
 import * as bcrypt from 'bcrypt'
 import { eq } from "drizzle-orm";
 import { JwtService } from "@nestjs/jwt";
@@ -47,10 +47,10 @@ export class authService {
             throw new UnauthorizedException("Invalid credentials")
         }
 
-        const payload = {
+        const payload: JwtPayload = jwtPayloadSchema.parse({
             sub: user.id,
             name: user.name,
-        }
+        })
 
         return {
             access_token: await this.jwtService.signAsync(payload),
