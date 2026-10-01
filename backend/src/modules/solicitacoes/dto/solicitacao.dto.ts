@@ -43,8 +43,8 @@ const filtroSolicitacaoSchema = z.object({
     search: z.string().optional(),
     categoria: z.enum(CATEGORIAS_SOLICITACAO).optional(),
     status: z.enum(STATUS_SOLICITACAO).optional(),
-    data_inicio: z.coerce.date().optional(),
-    data_fim: z.coerce.date().optional(),
+    data_inicio: z.string().optional(),
+    data_fim: z.string().optional(),
 });
 
 export class CriarSolicitacaoDto extends createZodDto(criarSolicitacaoSchema) { }
