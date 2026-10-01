@@ -10,9 +10,6 @@ import { JwtService } from "@nestjs/jwt";
 export class authService {
     constructor(@Inject(DRIZZLE) readonly db: DrizzleDB, private jwtService: JwtService) { }
 
-    async validate() {
-
-    }
     async register(dto: registerDto) {
         const existingUser = await this.db.query.users.findFirst({
             where: eq(users.name, dto.user)

@@ -18,8 +18,3 @@ export const jwtPayloadSchema = z.object({
     name: z.string(),
 })
 export type JwtPayload = z.infer<typeof jwtPayloadSchema>
-
-export interface AuthenticatedUser {
-    sub: string;
-    name: string;
-}
