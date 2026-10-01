@@ -29,6 +29,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Registrar um novo usuário */
         post: operations["AuthController_register"];
         delete?: never;
         options?: never;
@@ -45,6 +46,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Realizar login */
         post: operations["AuthController_login"];
         delete?: never;
         options?: never;
@@ -61,6 +63,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Realizar logout */
         post: operations["AuthController_logout"];
         delete?: never;
         options?: never;
@@ -75,6 +78,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Obter dados do usuário autenticado */
         get: operations["AuthController_getMe"];
         put?: never;
         post?: never;
@@ -91,8 +95,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Listar solicitações com paginação e filtros */
         get: operations["SolicitacoesController_findAll"];
         put?: never;
+        /** Criar uma nova solicitação */
         post: operations["SolicitacoesController_create"];
         delete?: never;
         options?: never;
@@ -107,6 +113,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Obter métricas e estatísticas do dashboard */
         get: operations["SolicitacoesController_getDashboard"];
         put?: never;
         post?: never;
@@ -123,12 +130,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Obter detalhes de uma solicitação por ID */
         get: operations["SolicitacoesController_getById"];
         put?: never;
         post?: never;
+        /** Excluir uma solicitação */
         delete: operations["SolicitacoesController_delete"];
         options?: never;
         head?: never;
+        /** Atualizar dados de uma solicitação */
         patch: operations["SolicitacoesController_update"];
         trace?: never;
     };
@@ -145,6 +155,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /** Atualizar status de uma solicitação */
         patch: operations["SolicitacoesController_updateStatus"];
         trace?: never;
     };
@@ -160,11 +171,62 @@ export interface components {
             user: string;
             password: string;
         };
+        LoginResponseDto: {
+            message: string;
+            access_token: string;
+        };
+        LogoutResponseDto: {
+            message: string;
+        };
+        MeResponseDto: {
+            userId: string;
+            name: string;
+        };
         CriarSolicitacaoDto: {
             titulo: string;
             descricao: string;
             /** @enum {string} */
             categoria: "TI" | "RH" | "Compras" | "Financeiro" | "Infraestrutura";
+        };
+        SolicitacaoResponseDto: {
+            /** Format: uuid */
+            id: string;
+            titulo: string;
+            descricao: string;
+            /** @enum {string} */
+            categoria: "TI" | "RH" | "Compras" | "Financeiro" | "Infraestrutura";
+            /** @enum {string} */
+            status: "Aberto" | "Em Atendimento" | "Concluído";
+            data_criacao: string;
+            /** Format: uuid */
+            usuario_id: string;
+            solicitante: string[];
+        };
+        ListagemSolicitacoesResponseDto: {
+            data: {
+                /** Format: uuid */
+                id: string;
+                titulo: string;
+                descricao: string;
+                /** @enum {string} */
+                categoria: "TI" | "RH" | "Compras" | "Financeiro" | "Infraestrutura";
+                /** @enum {string} */
+                status: "Aberto" | "Em Atendimento" | "Concluído";
+                data_criacao: string;
+                /** Format: uuid */
+                usuario_id: string;
+                solicitante: string | null;
+            }[];
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
+        DashboardResponseDto: {
+            total: number;
+            abertas: number;
+            emAtendimento: number;
+            concluidas: number;
         };
         AtualizarSolicitacaoDto: {
             titulo?: string;
@@ -175,6 +237,10 @@ export interface components {
         AlterarStatusSolicitacaoDto: {
             /** @enum {string} */
             status: "Aberto" | "Em Atendimento" | "Concluído";
+        };
+        ExcluirSolicitacaoResponseDto: {
+            message: string;
+            id: string;
         };
     };
     responses: never;
@@ -215,6 +281,7 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Usuário registrado com sucesso */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -240,7 +307,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["LoginResponseDto"];
+                };
             };
         };
     };
@@ -257,7 +326,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["LogoutResponseDto"];
+                };
             };
         };
     };
@@ -274,7 +345,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MeResponseDto"];
+                };
             };
         };
     };
@@ -299,7 +372,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ListagemSolicitacoesResponseDto"];
+                };
             };
         };
     };
@@ -320,7 +395,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SolicitacaoResponseDto"];
+                };
             };
         };
     };
@@ -337,7 +414,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["DashboardResponseDto"];
+                };
             };
         };
     };
@@ -356,7 +435,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SolicitacaoResponseDto"];
+                };
             };
         };
     };
@@ -375,7 +456,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ExcluirSolicitacaoResponseDto"];
+                };
             };
         };
     };
@@ -398,7 +481,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SolicitacaoResponseDto"];
+                };
             };
         };
     };
@@ -421,7 +506,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SolicitacaoResponseDto"];
+                };
             };
         };
     };

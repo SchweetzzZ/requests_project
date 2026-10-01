@@ -51,3 +51,40 @@ export class CriarSolicitacaoDto extends createZodDto(criarSolicitacaoSchema) { 
 export class AtualizarSolicitacaoDto extends createZodDto(atualizarSolicitacaoSchema) { }
 export class AlterarStatusSolicitacaoDto extends createZodDto(alterarStatusSolicitacaoSchema) { }
 export class FiltroSolicitacaoDto extends createZodDto(filtroSolicitacaoSchema) { }
+
+export const solicitacaoResponseSchema = z.object({
+    id: z.string().uuid(),
+    titulo: z.string(),
+    descricao: z.string(),
+    categoria: z.enum(CATEGORIAS_SOLICITACAO),
+    status: z.enum(STATUS_SOLICITACAO),
+    data_criacao: z.string(),
+    usuario_id: z.string().uuid(),
+    solicitante: z.string().nullable(),
+});
+
+export const listagemSolicitacoesResponseSchema = z.object({
+    data: z.array(solicitacaoResponseSchema),
+    total: z.number(),
+    page: z.number(),
+    limit: z.number(),
+    totalPages: z.number(),
+});
+
+export const dashboardResponseSchema = z.object({
+    total: z.number(),
+    abertas: z.number(),
+    emAtendimento: z.number(),
+    concluidas: z.number(),
+});
+
+export const excluirSolicitacaoResponseSchema = z.object({
+    message: z.string(),
+    id: z.string(),
+});
+
+export class SolicitacaoResponseDto extends createZodDto(solicitacaoResponseSchema) { }
+export class ListagemSolicitacoesResponseDto extends createZodDto(listagemSolicitacoesResponseSchema) { }
+export class DashboardResponseDto extends createZodDto(dashboardResponseSchema) { }
+export class ExcluirSolicitacaoResponseDto extends createZodDto(excluirSolicitacaoResponseSchema) { }
+
