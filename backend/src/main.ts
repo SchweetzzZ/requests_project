@@ -9,8 +9,14 @@ async function bootstrap() {
 
   app.use(cookieParser())
 
+  const developmentOrigins = process.env.NODE_ENV === 'production'
+    ? []
+    : ['http://localhost:5173', 'http://127.0.0.1:5173'];
+  const allowedOrigins = [process.env.CORS_ORIGIN, ...developmentOrigins]
+    .filter((origin): origin is string => Boolean(origin));
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN,
+    origin: allowedOrigins,
     credentials: true,
   })
 

@@ -10,6 +10,7 @@ export type FiltrosSolicitacao = operations['SolicitacoesController_findAll']['p
 //Responses
 export type SolicitacaoItem = components['schemas']['SolicitacaoResponseDto'];
 export type ListagemSolicitacoesResponse = components['schemas']['ListagemSolicitacoesResponseDto'];
+export type SolicitacaoListItem = ListagemSolicitacoesResponse['data'][number];
 export type DashboardResponse = components['schemas']['DashboardResponseDto'];
 export type ExcluirSolicitacaoResponse = components['schemas']['ExcluirSolicitacaoResponseDto'];
 

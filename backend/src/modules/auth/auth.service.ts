@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import { ConflictException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { DRIZZLE, type DrizzleDB } from "../db/db.constants";
 import { users } from "./schema/schema"
 import { loginDto, registerDto, jwtPayloadSchema, type JwtPayload } from "./dto/auth.dto";
@@ -16,7 +16,7 @@ export class authService {
         })
 
         if (existingUser) {
-            throw new Error('User already exists')
+            throw new ConflictException('Este usuário já existe. Entre na sua conta ou escolha outro nome.')
         }
 
         const hashPass = await bcrypt.hash(dto.password, 12)

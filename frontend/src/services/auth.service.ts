@@ -13,8 +13,13 @@ export const authService = {
     },
 
     async register(body: RegisterInput) {
-        const { data, error } = await api.POST('/auth/register', { body });
-        if (error) throw new Error('Erro ao cadastrar usuário');
+        const { data, error, response } = await api.POST('/auth/register', { body });
+        if (error as unknown) {
+            if (response.status === 409) {
+                throw new Error('Este usuário já existe. Tente entrar na sua conta.');
+            }
+            throw new Error('Não foi possível criar a conta. Confira os dados e tente novamente.');
+        }
         return data;
     },
 
