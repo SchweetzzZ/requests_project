@@ -1,10 +1,10 @@
-import { Module } from "@nestjs/common";
-import { SolicitacoesController } from "./solicitacoes.controller";
-import { SolicitacoesService } from "./solicitacoes.service";
+import { Module } from '@nestjs/common';
+import { SolicitacoesController } from './solicitacoes.controller';
+import { SolicitacoesService } from './solicitacoes.service';
 
 @Module({
-    controllers: [SolicitacoesController],
-    providers: [SolicitacoesService],
-    exports: [SolicitacoesService],
+  controllers: [SolicitacoesController],
+  providers: [SolicitacoesService],
+  exports: [SolicitacoesService],
 })
-export class SolicitacoesModule { }
+export class SolicitacoesModule {}

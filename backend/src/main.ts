@@ -3,34 +3,42 @@ import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { runMigrations } from './modules/db/migrate.js';
 
 async function bootstrap() {
+  if (process.env.RUN_MIGRATIONS === 'true') {
+    await runMigrations();
+  }
+
   const app = await NestFactory.create(AppModule);
 
-  app.use(cookieParser())
+  app.use(cookieParser());
 
-  const developmentOrigins = process.env.NODE_ENV === 'production'
-    ? []
-    : ['http://localhost:5173', 'http://127.0.0.1:5173'];
-  const allowedOrigins = [process.env.CORS_ORIGIN, ...developmentOrigins]
-    .filter((origin): origin is string => Boolean(origin));
+  const developmentOrigins =
+    process.env.NODE_ENV === 'production'
+      ? []
+      : ['http://localhost:5173', 'http://127.0.0.1:5173'];
+  const allowedOrigins = [
+    process.env.CORS_ORIGIN,
+    ...developmentOrigins,
+  ].filter((origin): origin is string => Boolean(origin));
 
   app.enableCors({
     origin: allowedOrigins,
     credentials: true,
-  })
+  });
 
-  app.useGlobalPipes(new ZodValidationPipe())
+  app.useGlobalPipes(new ZodValidationPipe());
 
   const config = new DocumentBuilder()
     .setTitle('Internal Request Api')
     .setDescription('API de solicitações internas')
     .setVersion('1.0')
-    .build()
+    .build();
 
-  const document = SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup('docs', app, document)
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document);
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
-bootstrap();
+void bootstrap();

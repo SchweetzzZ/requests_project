@@ -33,11 +33,84 @@ function LoginPage() {
   }
 
   return (
-    <div className="auth-layout">
-      <section className="auth-form-side"><div className="auth-card"><div className="auth-card-mark"><Hexagon size={20} /></div><div className="eyebrow">BEM-VINDO AO ATENDE</div><h2>{isRegister ? 'Crie sua conta' : 'Bom ter você por aqui'}</h2><p className="auth-intro">{isRegister ? 'Comece a organizar as solicitações da sua equipe.' : 'Entre para acessar o espaço de trabalho da sua equipe.'}</p>
-        <form className="auth-form" onSubmit={handleSubmit}><label>Usuário<input autoComplete="username" required minLength={3} value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Seu nome de usuário" /></label><label>Senha<span className="password-wrap"><input autoComplete={isRegister ? 'new-password' : 'current-password'} type={showPassword ? 'text' : 'password'} required minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Pelo menos 8 caracteres" /><button type="button" aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></span></label><button type="submit" className="button button-primary auth-submit" disabled={loading}>{loading ? 'Aguarde…' : isRegister ? 'Criar conta' : 'Entrar no espaço'}{!loading && <ArrowRight size={17} />}</button></form>
-        <div className="auth-switch">{isRegister ? 'Já tem uma conta?' : 'É sua primeira vez por aqui?'} <button onClick={() => { setIsRegister(!isRegister); setPassword(''); }}>{isRegister ? 'Entrar' : 'Criar conta'}</button></div><div className="auth-assurance"><Check size={14} /> Seus pedidos ficam organizados em um só lugar.</div>
-      </div><div className="auth-copyright">© 2026 Atende <span>·</span> Feito para a rotina real das equipes</div></section>
+    <div className="flex justify-center min-h-screen bg-gradient-to-br from-zinc-100 to-white">
+      <section className="w-full min-h-screen flex flex-col items-center justify-center px-7 py-10 relative max-sm:px-6 max-sm:py-14">
+        <div className="w-full max-w-[380px]">
+          <div className="h-11 w-11 rounded-xl bg-violet-100 text-violet-800 grid place-items-center mb-6 max-sm:mb-6">
+            <Hexagon size={20} />
+          </div>
+          <div className="text-[11px] tracking-[1.25px] font-extrabold text-violet-800 mb-2.5">BEM-VINDO AO ATENDE</div>
+          <h2 className="font-display font-extrabold text-[28px] leading-tight tracking-tight text-ink max-sm:text-2xl">
+            {isRegister ? 'Crie sua conta' : 'Bom ter você por aqui'}
+          </h2>
+          <p className="text-sm text-zinc-800 font-medium leading-relaxed mt-2.5 mb-7">
+            {isRegister ? 'Comece a organizar as solicitações da sua equipe.' : 'Entre para acessar o espaço de trabalho da sua equipe.'}
+          </p>
+          <form className="grid gap-4" onSubmit={handleSubmit}>
+            <label className="grid gap-[7px] text-ink text-[12.5px] font-bold relative">
+              Usuário
+              <input
+                className="w-full border border-zinc-300 rounded-lg py-[11px] px-3 text-ink outline-none bg-white text-[13px] font-medium transition-all focus:border-violet-600 focus:ring-3 focus:ring-violet-600/15 placeholder:text-zinc-600"
+                autoComplete="username"
+                required
+                minLength={3}
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="Seu nome de usuário"
+              />
+            </label>
+            <label className="grid gap-[7px] text-ink text-[12.5px] font-bold relative">
+              Senha
+              <span className="relative">
+                <input
+                  className="w-full border border-zinc-300 rounded-lg py-[11px] px-3 pr-[42px] text-ink outline-none bg-white text-[13px] font-medium transition-all focus:border-violet-600 focus:ring-3 focus:ring-violet-600/15 placeholder:text-zinc-600"
+                  autoComplete={isRegister ? 'new-password' : 'current-password'}
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Pelo menos 8 caracteres"
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1.5 border-0 bg-transparent text-zinc-800 h-7 w-7 grid place-items-center hover:text-black"
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </span>
+            </label>
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center gap-2 min-h-[42px] px-4.5 rounded-[10px] text-[13px] font-semibold whitespace-nowrap bg-ink text-white border border-ink shadow-sm hover:-translate-y-px transition-all w-full mt-1.5 min-h-[46px]"
+              disabled={loading}
+            >
+              {loading ? 'Aguarde…' : isRegister ? 'Criar conta' : 'Entrar no espaço'}
+              {!loading && <ArrowRight size={17} />}
+            </button>
+          </form>
+          <div className="text-center text-[13px] text-zinc-800 font-medium mt-5.5">
+            {isRegister ? 'Já tem uma conta?' : 'É sua primeira vez por aqui?'}{' '}
+            <button
+              className="border-0 bg-none text-violet-800 font-bold px-0.5 cursor-pointer hover:underline"
+              onClick={() => {
+                setIsRegister(!isRegister);
+                setPassword('');
+              }}
+            >
+              {isRegister ? 'Entrar' : 'Criar conta'}
+            </button>
+          </div>
+          <div className="flex items-center justify-center gap-[7px] border-t border-line mt-6.5 pt-4.5 text-zinc-800 font-medium text-xs">
+            <Check size={14} className="text-green-600" /> Seus pedidos ficam organizados em um só lugar.
+          </div>
+        </div>
+        <div className="absolute bottom-5.5 text-zinc-600 font-medium text-[11px] max-sm:bottom-4.5 max-sm:text-center max-sm:w-full max-sm:text-[10px]">
+          © 2026 Atende <span className="px-1.5 text-zinc-400">·</span> Feito para a rotina real das equipes
+        </div>
+      </section>
     </div>
   );
 }

@@ -10,4 +10,4 @@ import { SolicitacoesModule } from './modules/solicitacoes/solicitacoes.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
