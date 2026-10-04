@@ -17,6 +17,14 @@ export function useSolicitacoes(filtros?: FiltrosSolicitacao) {
   });
 }
 
+export function useSolicitacao(id: string | null) {
+  return useQuery({
+    queryKey: ['solicitacoes', 'detail', id],
+    queryFn: () => solicitacoesService.getById(id as string),
+    enabled: !!id,
+  });
+}
+
 export function useCriarSolicitacao() {
   const queryClient = useQueryClient();
 

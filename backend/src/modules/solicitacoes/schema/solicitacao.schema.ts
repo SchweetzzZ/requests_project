@@ -1,4 +1,4 @@
-import { pgEnum, pgTable, uuid, varchar, timestamp } from 'drizzle-orm/pg-core';
+import { integer, pgEnum, pgTable, uuid, varchar, timestamp } from 'drizzle-orm/pg-core';
 import { users } from '../../auth/schema/schema';
 
 export const categoriaSolicitacaoEnum = pgEnum('categoria_solicitacao', [
@@ -17,6 +17,7 @@ export const statusSolicitacaoEnum = pgEnum('status_solicitacao', [
 
 export const solicitacoes = pgTable('solicitacoes', {
   id: uuid('id').primaryKey().defaultRandom(),
+  codigo: integer('codigo').notNull().unique().generatedAlwaysAsIdentity(),
   titulo: varchar('titulo', { length: 255 }).notNull(),
   descricao: varchar('descricao', { length: 255 }).notNull(),
   status: statusSolicitacaoEnum('status').notNull().default('Aberto'),

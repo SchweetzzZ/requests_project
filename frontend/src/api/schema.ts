@@ -191,6 +191,7 @@ export interface components {
         SolicitacaoResponseDto: {
             /** Format: uuid */
             id: string;
+            codigo: number;
             titulo: string;
             descricao: string;
             /** @enum {string} */
@@ -206,6 +207,7 @@ export interface components {
             data: {
                 /** Format: uuid */
                 id: string;
+                codigo: number;
                 titulo: string;
                 descricao: string;
                 /** @enum {string} */

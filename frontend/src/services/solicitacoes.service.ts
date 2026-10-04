@@ -33,6 +33,16 @@ export const solicitacoesService = {
     return data;
   },
 
+  async getById(id: string) {
+    const { data, error } = await api.GET('/solicitacoes/{id}', {
+      params: { path: { id } },
+    });
+    if (error || !data) {
+      throw new Error('Falha ao carregar detalhes da solicitação');
+    }
+    return data;
+  },
+
   async create(body: CriarSolicitacaoInput) {
     const { data, error } = await api.POST('/solicitacoes', { body });
     if (error || !data) {

@@ -11,6 +11,7 @@ import {
   CircleX,
   ClipboardList,
   Clock3,
+  Eye,
   FilePlus2,
   Layers,
   Loader2,
@@ -28,6 +29,7 @@ import {
   useCriarSolicitacao,
   useDashboard,
   useExcluirSolicitacao,
+  useSolicitacao,
   useSolicitacoes,
 } from '../hooks/useSolicitacoes';
 import type { SolicitacaoListItem } from '../services/solicitacoes.service';
@@ -35,6 +37,8 @@ import type { components } from '../api/schema';
 import { CATEGORY_STYLES, formatDate } from './index';
 import { StatusDropdown } from '../components/StatusDropdown';
 import { CustomSelect, type CustomSelectOption } from '../components/CustomSelect';
+
+const formatCodigo = (codigo: number) => `SOL-${String(codigo).padStart(4, '0')}`;
 
 type Categoria = components['schemas']['CriarSolicitacaoDto']['categoria'];
 type Status = components['schemas']['AlterarStatusSolicitacaoDto']['status'];
@@ -85,7 +89,10 @@ function RequestsPage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [status, setStatus] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [editing, setEditing] = useState<SolicitacaoListItem | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -112,8 +119,11 @@ function RequestsPage() {
     search: search.trim() || undefined,
     categoria: (category || undefined) as Categoria | undefined,
     status: (status || undefined) as Status | undefined,
+    data_inicio: dateFrom || undefined,
+    data_fim: dateTo || undefined,
   });
 
+  const { data: detail, isLoading: isLoadingDetail, isError: isDetailError } = useSolicitacao(detailId);
   const createRequest = useCriarSolicitacao();
   const updateRequest = useAtualizarSolicitacao();
   const updateStatus = useAlterarStatus();
@@ -198,10 +208,24 @@ function RequestsPage() {
     }
   }
 
+  // Ao escolher a data inicial, a final acompanha (filtra um único dia) e pode ser ampliada depois.
+  function handleDateFromChange(value: string) {
+    setDateFrom(value);
+    if (value && (!dateTo || dateTo < value)) setDateTo(value);
+    setPage(1);
+  }
+
+  function handleDateToChange(value: string) {
+    setDateTo(value);
+    setPage(1);
+  }
+
   function clearFilters() {
     setSearch('');
     setCategory('');
     setStatus('');
+    setDateFrom('');
+    setDateTo('');
     setPage(1);
   }
 
@@ -357,7 +381,7 @@ function RequestsPage() {
                 ref={searchInputRef}
                 className="min-w-0 flex-1 border-0 outline-none text-ink text-[12.5px] font-medium bg-transparent placeholder:text-zinc-400"
                 aria-label="Buscar solicitações"
-                placeholder="Buscar pelo título ou descrição…"
+                placeholder="Buscar por título ou código (ex.: SOL-0001)…"
                 value={search}
                 onChange={(event) => {
                   setSearch(event.target.value);
@@ -401,7 +425,28 @@ function RequestsPage() {
               ariaLabel="Filtrar por status"
             />
 
-            {(search || category || status) && (
+            <div className="flex items-center gap-1.5 max-sm:basis-full">
+              <span className="text-xs font-semibold text-muted">De</span>
+              <input
+                type="date"
+                className="h-9.5 border border-zinc-200 rounded-lg px-3 text-ink bg-white shadow-2xs text-[12.5px] font-medium outline-none transition-all focus:border-violet-600 focus:ring-2 focus:ring-violet-600/15 max-sm:flex-1 max-sm:min-w-0"
+                aria-label="Data inicial"
+                value={dateFrom}
+                max={dateTo || undefined}
+                onChange={(event) => handleDateFromChange(event.target.value)}
+              />
+              <span className="text-xs font-semibold text-muted">até</span>
+              <input
+                type="date"
+                className="h-9.5 border border-zinc-200 rounded-lg px-3 text-ink bg-white shadow-2xs text-[12.5px] font-medium outline-none transition-all focus:border-violet-600 focus:ring-2 focus:ring-violet-600/15 max-sm:flex-1 max-sm:min-w-0"
+                aria-label="Data final"
+                value={dateTo}
+                min={dateFrom || undefined}
+                onChange={(event) => handleDateToChange(event.target.value)}
+              />
+            </div>
+
+            {(search || category || status || dateFrom || dateTo) && (
               <button
                 className="flex items-center gap-1.5 border-0 bg-violet-50 text-violet-800 text-xs font-bold whitespace-nowrap py-1.5 px-2.5 rounded-lg transition-colors hover:bg-violet-100 hover:text-violet-900 cursor-pointer"
                 onClick={clearFilters}
@@ -417,15 +462,16 @@ function RequestsPage() {
         </div>
 
         <div className="w-full overflow-x-auto">
-          <table className="w-full border-collapse text-left min-w-[820px]">
+          <table className="w-full border-collapse text-left min-w-[900px]">
             <thead>
               <tr>
-                <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line first:pl-6">Solicitação</th>
+                <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line first:pl-6 w-[110px]">Código</th>
+                <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line">Solicitação</th>
                 <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line w-[140px]">Área</th>
                 <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line w-[160px]">Solicitante</th>
                 <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line w-[140px]">Data</th>
                 <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line w-[160px]">Status</th>
-                <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line last:pr-6 last:w-[88px] text-right">
+                <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line last:pr-6 last:w-[120px] text-right">
                   <span className="sr-only">Ações</span>
                 </th>
               </tr>
@@ -433,7 +479,7 @@ function RequestsPage() {
             <tbody className="last:[&_td]:border-b-0 divide-y divide-line">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="h-[120px] py-4 px-4 text-center text-[13px] font-medium text-zinc-600">
+                  <td colSpan={7} className="h-[120px] py-4 px-4 text-center text-[13px] font-medium text-zinc-600">
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 size={16} className="animate-spin text-violet-700" />
                       Carregando solicitações…
@@ -442,26 +488,26 @@ function RequestsPage() {
                 </tr>
               ) : isError ? (
                 <tr>
-                  <td colSpan={6} className="h-[120px] py-4 px-4 text-center text-[13px] font-medium text-red-700">
+                  <td colSpan={7} className="h-[120px] py-4 px-4 text-center text-[13px] font-medium text-red-700">
                     Não foi possível carregar as solicitações. Tente novamente em instantes.
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-14 px-6">
+                  <td colSpan={7} className="py-14 px-6">
                     <div className="max-w-md mx-auto flex flex-col justify-center items-center text-center">
                       <span className="h-12 w-12 rounded-2xl bg-violet-100 text-violet-800 grid place-items-center mb-3.5 shadow-2xs">
                         <ClipboardList size={24} />
                       </span>
                       <strong className="font-display font-bold text-[16px] text-ink">
-                        {search || category || status ? 'Nenhum pedido encontrado' : 'Nenhuma solicitação por aqui ainda'}
+                        {search || category || status || dateFrom || dateTo ? 'Nenhum pedido encontrado' : 'Nenhuma solicitação por aqui ainda'}
                       </strong>
                       <p className="text-[13px] text-muted font-medium mt-1.5 mb-4 leading-relaxed">
-                        {search || category || status
+                        {search || category || status || dateFrom || dateTo
                           ? 'Ajuste ou limpe os filtros de busca para visualizar os registros cadastrados.'
                           : 'Crie sua primeira solicitação para começar a organizar pedidos e acompanhar o progresso de cada etapa.'}
                       </p>
-                      {search || category || status ? (
+                      {search || category || status || dateFrom || dateTo ? (
                         <button
                           className="border-0 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 inline-flex items-center gap-2 text-[12.5px] font-semibold py-2 px-4 rounded-xl transition-all cursor-pointer"
                           onClick={clearFilters}
@@ -485,7 +531,10 @@ function RequestsPage() {
                   const canEdit = isOwner && item.status === 'Aberto';
                   return (
                     <tr key={item.id} className="hover:bg-zinc-50/70 transition-colors">
-                      <td className="py-3 px-4 first:pl-6">
+                      <td className="py-3 px-4 first:pl-6 w-[110px]">
+                        <span className="font-mono text-[12px] font-semibold text-zinc-700 whitespace-nowrap">{formatCodigo(item.codigo)}</span>
+                      </td>
+                      <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           <span
                             className={`w-9 h-9 shrink-0 rounded-xl grid place-items-center bg-violet-100 text-violet-800 max-sm:h-8 max-sm:w-8 ${CATEGORY_STYLES[item.categoria.toLowerCase()] ?? ''}`}
@@ -522,8 +571,16 @@ function RequestsPage() {
                           onChange={(newStatus) => updateStatus.mutate({ id: item.id, status: newStatus })}
                         />
                       </td>
-                      <td className="py-3 px-4 last:pr-6 last:w-[88px] text-right">
+                      <td className="py-3 px-4 last:pr-6 last:w-[120px] text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <button
+                            className="border-0 bg-transparent rounded-lg text-zinc-700 grid place-items-center h-[30px] w-[30px] transition-colors hover:bg-zinc-100 hover:text-black cursor-pointer"
+                            title="Ver detalhes"
+                            aria-label={`Ver detalhes de ${formatCodigo(item.codigo)}`}
+                            onClick={() => setDetailId(item.id)}
+                          >
+                            <Eye size={15} />
+                          </button>
                           {canEdit && (
                             <button
                               className="border-0 bg-transparent rounded-lg text-zinc-700 grid place-items-center h-[30px] w-[30px] transition-colors hover:bg-zinc-100 hover:text-black cursor-pointer"
@@ -587,6 +644,77 @@ function RequestsPage() {
       <div className="flex items-center gap-1.5 mt-3 px-1 text-muted text-xs font-medium">
         <ArrowDownUp size={14} className="text-zinc-400" /> Os pedidos mais recentes aparecem primeiro.
       </div>
+
+      {detailId && (
+        <div
+          className="fixed z-80 inset-0 bg-black/60 backdrop-blur-sm grid place-items-center p-5 animate-fade"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setDetailId(null);
+          }}
+        >
+          <div
+            className="w-[min(520px,100%)] max-h-[calc(100vh-40px)] overflow-y-auto bg-white border border-black/10 rounded-[20px] shadow-2xl animate-modal max-sm:rounded-[14px]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="detail-modal-title"
+          >
+            <div className="flex items-start justify-between gap-3 px-6 pt-5 pb-3 max-sm:px-4">
+              <div className="min-w-0">
+                <span className="font-mono text-[12px] font-semibold text-zinc-500">
+                  {detail ? formatCodigo(detail.codigo) : 'Detalhes'}
+                </span>
+                <h2 id="detail-modal-title" className="font-display font-bold text-[20px] tracking-tight m-0 text-ink break-words">
+                  {detail?.titulo ?? 'Detalhes da solicitação'}
+                </h2>
+              </div>
+              <button
+                className="border-0 bg-transparent rounded-lg text-zinc-600 grid place-items-center h-8 w-8 hover:bg-zinc-100 cursor-pointer shrink-0"
+                aria-label="Fechar"
+                onClick={() => setDetailId(null)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="px-6 pb-6 max-sm:px-4">
+              {isLoadingDetail ? (
+                <div className="flex items-center justify-center gap-2 py-10 text-[13px] font-medium text-zinc-600">
+                  <Loader2 size={16} className="animate-spin text-violet-700" />
+                  Carregando detalhes…
+                </div>
+              ) : isDetailError || !detail ? (
+                <p className="py-10 text-center text-[13px] font-medium text-red-700">
+                  Não foi possível carregar os detalhes desta solicitação.
+                </p>
+              ) : (
+                <>
+                  <p className="text-[13.5px] text-zinc-800 leading-relaxed whitespace-pre-wrap break-words m-0 mb-5">
+                    {detail.descricao}
+                  </p>
+                  <dl className="grid grid-cols-2 gap-x-4 gap-y-3 m-0 text-[12.5px] max-sm:grid-cols-1">
+                    <div>
+                      <dt className="text-muted font-semibold">Categoria</dt>
+                      <dd className="m-0 text-ink font-medium">{detail.categoria}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted font-semibold">Status</dt>
+                      <dd className="m-0 text-ink font-medium">{detail.status}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted font-semibold">Solicitante</dt>
+                      <dd className="m-0 text-ink font-medium">{detail.solicitante ?? '—'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted font-semibold">Data de abertura</dt>
+                      <dd className="m-0 text-ink font-medium">{new Date(detail.data_criacao).toLocaleString('pt-BR')}</dd>
+                    </div>
+                  </dl>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {modalOpen && (
         <div

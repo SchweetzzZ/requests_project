@@ -1,0 +1,2 @@
+ALTER TABLE "solicitacoes" ADD COLUMN "codigo" integer NOT NULL GENERATED ALWAYS AS IDENTITY (sequence name "solicitacoes_codigo_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1);--> statement-breakpoint
+ALTER TABLE "solicitacoes" ADD CONSTRAINT "solicitacoes_codigo_unique" UNIQUE("codigo");

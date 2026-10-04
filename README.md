@@ -226,9 +226,9 @@ Para avaliar todas as funcionalidades implementadas na aplicação:
    - Ao submeter, a solicitação é salva no PostgreSQL e surge instantaneamente na lista com o status `Aberto`.
 
 2. **Filtros e Busca em Tempo Real:**
-   - Utilize a barra de busca para filtrar solicitações pelo título ou descrição.
+   - Utilize a barra de busca para filtrar solicitações pelo título ou pelo código (ex.: `SOL-0001`), e os campos de data inicial e final para filtrar por período.
    - Utilize os filtros de **Status** (`Todos`, `Aberto`, `Em Atendimento`, `Concluído`) e **Categoria**.
-   - Note que os parâmetros de pesquisa e paginação são refletidos diretamente na URL via TanStack Router, permitindo recarregar ou compartilhar a visualização.
+   - Os filtros e a paginação são mantidos em estado local da página.
 
 3. **Ciclo de Vida do Chamado (Status):**
    - No card ou na linha da solicitação, altere o status de `Aberto` para `Em Atendimento` e, em seguida, para `Concluído`.
@@ -245,3 +245,4 @@ Para avaliar todas as funcionalidades implementadas na aplicação:
 
 ## 6. Documentação Complementar
 * **[MEMORIAL_TECNICO.md](MEMORIAL_TECNICO.md):** Memorial descritivo com fundamentação arquitetural, justificativas das escolhas tecnológicas, análise crítica e roadmap de melhorias.
+* **[DICIONARIO_DE_DADOS.md](docs/DICIONARIO_DE_DADOS.md):** Dicionário de dados com diagrama ER, tabelas, colunas, enums, relacionamentos e regras de negócio que afetam o banco.

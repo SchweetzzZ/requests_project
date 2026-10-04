@@ -1,42 +1,25 @@
-import {
-  Injectable,
-  Inject,
-  NotFoundException,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common';
-import {
-  CriarSolicitacaoDto,
-  AtualizarSolicitacaoDto,
-  AlterarStatusSolicitacaoDto,
-  FiltroSolicitacaoDto,
-} from './dto/solicitacao.dto';
-import { eq, and, ilike, lte, sql, type SQL, gte, desc } from 'drizzle-orm';
+import { Injectable, Inject, NotFoundException, BadRequestException, ForbiddenException, } from '@nestjs/common';
+import { CriarSolicitacaoDto, AtualizarSolicitacaoDto, AlterarStatusSolicitacaoDto, FiltroSolicitacaoDto, } from './dto/solicitacao.dto';
+import { eq, and, or, ilike, sql, type SQL, desc } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../db/db.constants';
 import { solicitacoes } from './schema/solicitacao.schema';
 import { users } from '../auth/schema/schema';
 
 @Injectable()
 export class SolicitacoesService {
-  constructor(@Inject(DRIZZLE) readonly db: DrizzleDB) {}
+  constructor(@Inject(DRIZZLE) readonly db: DrizzleDB) { }
 
   async create(dto: CriarSolicitacaoDto, usuarioId: string) {
-    const [criada] = await this.db
-      .insert(solicitacoes)
-      .values({
-        usuario_id: usuarioId,
-        ...dto,
-      })
-      .returning();
+    const [criada] = await this.db.insert(solicitacoes).values({
+      usuario_id: usuarioId,
+      ...dto,
+    }).returning();
 
     return criada;
   }
 
   async update(id: string, dto: AtualizarSolicitacaoDto, usuarioId: string) {
-    const [existente] = await this.db
-      .select()
-      .from(solicitacoes)
-      .where(eq(solicitacoes.id, id));
+    const [existente] = await this.db.select().from(solicitacoes).where(eq(solicitacoes.id, id));
 
     if (!existente) {
       throw new NotFoundException('Solicitação não encontrada');
@@ -54,22 +37,15 @@ export class SolicitacoesService {
       );
     }
 
-    const [atualizada] = await this.db
-      .update(solicitacoes)
-      .set({
-        ...dto,
-      })
-      .where(eq(solicitacoes.id, id))
-      .returning();
+    const [atualizada] = await this.db.update(solicitacoes).set({
+      ...dto,
+    }).where(eq(solicitacoes.id, id)).returning();
 
     return atualizada;
   }
 
   async delete(id: string, usuarioId: string) {
-    const [existente] = await this.db
-      .select()
-      .from(solicitacoes)
-      .where(eq(solicitacoes.id, id));
+    const [existente] = await this.db.select().from(solicitacoes).where(eq(solicitacoes.id, id));
 
     if (!existente) {
       throw new NotFoundException('Solicitação não encontrada');
@@ -93,22 +69,15 @@ export class SolicitacoesService {
   }
 
   async updateStatus(id: string, dto: AlterarStatusSolicitacaoDto) {
-    const [existente] = await this.db
-      .select()
-      .from(solicitacoes)
-      .where(eq(solicitacoes.id, id));
+    const [existente] = await this.db.select().from(solicitacoes).where(eq(solicitacoes.id, id));
 
     if (!existente) {
       throw new NotFoundException('Solicitação não encontrada');
     }
 
-    const [atualizada] = await this.db
-      .update(solicitacoes)
-      .set({
-        status: dto.status,
-      })
-      .where(eq(solicitacoes.id, id))
-      .returning();
+    const [atualizada] = await this.db.update(solicitacoes).set({
+      status: dto.status,
+    }).where(eq(solicitacoes.id, id)).returning();
 
     return atualizada;
   }
@@ -128,7 +97,15 @@ export class SolicitacoesService {
     const conditions: SQL[] = [];
 
     if (search?.trim()) {
-      conditions.push(ilike(solicitacoes.titulo, `%${search.trim()}%`));
+      const termo = search.trim();
+      const porCodigo = /^(?:sol-?)?(\d{1,9})$/i.exec(termo);
+      const filtroTitulo = ilike(solicitacoes.titulo, `%${termo}%`);
+
+      conditions.push(
+        porCodigo
+          ? or(filtroTitulo, eq(solicitacoes.codigo, Number(porCodigo[1])))!
+          : filtroTitulo,
+      );
     }
 
     if (categoria) {
@@ -139,16 +116,14 @@ export class SolicitacoesService {
       conditions.push(eq(solicitacoes.status, status));
     }
 
+    const diaCriacao = sql`(${solicitacoes.data_criacao} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo')::date`;
+
     if (data_inicio) {
-      const start = new Date(data_inicio);
-      start.setHours(0, 0, 0, 0);
-      conditions.push(gte(solicitacoes.data_criacao, start));
+      conditions.push(sql`${diaCriacao} >= ${data_inicio}::date`);
     }
 
     if (data_fim) {
-      const end = new Date(data_fim);
-      end.setHours(23, 59, 59, 999);
-      conditions.push(lte(solicitacoes.data_criacao, end));
+      conditions.push(sql`${diaCriacao} <= ${data_fim}::date`);
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -163,6 +138,7 @@ export class SolicitacoesService {
     const data = await this.db
       .select({
         id: solicitacoes.id,
+        codigo: solicitacoes.codigo,
         titulo: solicitacoes.titulo,
         descricao: solicitacoes.descricao,
         categoria: solicitacoes.categoria,
@@ -191,6 +167,7 @@ export class SolicitacoesService {
     const [item] = await this.db
       .select({
         id: solicitacoes.id,
+        codigo: solicitacoes.codigo,
         titulo: solicitacoes.titulo,
         descricao: solicitacoes.descricao,
         categoria: solicitacoes.categoria,
