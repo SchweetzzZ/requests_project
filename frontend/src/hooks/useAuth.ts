@@ -13,9 +13,16 @@ export function useAuth() {
     })
 
     const loginMutation = useMutation({
-        mutationFn: (data: LoginInput) => authService.login(data),
+        mutationFn: async (data: LoginInput) => {
+            await authService.login(data);
+            const user = await authService.getMe();
+            if (!user) {
+                throw new Error('Não foi possível validar a sessão no navegador. Verifique as configurações de cookies.');
+            }
+            queryClient.setQueryData(['auth', 'me'], user);
+            return user;
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
             toast.success('Login realizado com sucesso')
         },
         onError: (err: Error) => {
