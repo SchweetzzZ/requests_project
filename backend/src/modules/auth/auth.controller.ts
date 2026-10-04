@@ -15,7 +15,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import type { Response } from 'express';
+import type { Response, CookieOptions } from 'express';
 import { authService } from './auth.service';
 import {
   loginDto,
@@ -37,6 +37,18 @@ export interface AuthenticatedUser {
 export class AuthController {
   constructor(private readonly authService: authService) {}
 
+  private getCookieOptions(): CookieOptions {
+    const isProd = process.env.NODE_ENV === 'production';
+    return {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      partitioned: isProd,
+      path: '/',
+      maxAge: 1000 * 60 * 60,
+    };
+  }
+
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Registrar um novo usuário' })
@@ -55,20 +67,23 @@ export class AuthController {
   ) {
     const { access_token } = await this.authService.login(dto);
 
-    res.cookie('access_token', access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 1000 * 60 * 60,
-    });
+    res.cookie('access_token', access_token, this.getCookieOptions());
     return { message: 'Logged in successfully', access_token };
   }
+
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Realizar logout' })
   @ApiOkResponse({ type: LogoutResponseDto })
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('access_token');
+    const options = this.getCookieOptions();
+    res.clearCookie('access_token', {
+      httpOnly: options.httpOnly,
+      secure: options.secure,
+      sameSite: options.sameSite,
+      partitioned: options.partitioned,
+      path: options.path,
+    });
     return { message: 'Logged out successfully' };
   }
 
