@@ -4,6 +4,7 @@ import {
   AlertCircle,
   ArrowDownUp,
   ArrowRight,
+  Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -11,6 +12,7 @@ import {
   CircleX,
   ClipboardList,
   Clock3,
+  Copy,
   Eye,
   FilePlus2,
   Layers,
@@ -39,6 +41,7 @@ import { StatusDropdown } from '../components/StatusDropdown';
 import { CustomSelect, type CustomSelectOption } from '../components/CustomSelect';
 
 const formatCodigo = (codigo: number) => `SOL-${String(codigo).padStart(4, '0')}`;
+const DELETE_CONFIRM_WORD = 'confirmar';
 
 type Categoria = components['schemas']['CriarSolicitacaoDto']['categoria'];
 type Status = components['schemas']['AlterarStatusSolicitacaoDto']['status'];
@@ -93,6 +96,9 @@ function RequestsPage() {
   const [dateTo, setDateTo] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<SolicitacaoListItem | null>(null);
+  const [confirmText, setConfirmText] = useState('');
+  const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState<SolicitacaoListItem | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -240,6 +246,40 @@ function RequestsPage() {
   const rows = data?.data ?? [];
   const totalPages = data?.totalPages ?? 1;
   const isSaving = createRequest.isPending || updateRequest.isPending;
+
+  function openDelete(item: SolicitacaoListItem) {
+    setConfirmText('');
+    setCopied(false);
+    setDeleting(item);
+  }
+
+  async function copyConfirmWord() {
+    try {
+      await navigator.clipboard.writeText(DELETE_CONFIRM_WORD);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+      document.getElementById('delete-confirm')?.focus();
+    } catch {
+      // Sem permissão de área de transferência: o usuário ainda pode digitar a palavra.
+    }
+  }
+
+  function closeDelete() {
+    if (deleteRequest.isPending) return;
+    setDeleting(null);
+    setConfirmText('');
+  }
+
+  function handleDeleteSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!deleting || confirmText.trim().toLowerCase() !== DELETE_CONFIRM_WORD) return;
+    deleteRequest.mutate(deleting.id, {
+      onSuccess: () => {
+        setDeleting(null);
+        setConfirmText('');
+      },
+    });
+  }
 
   return (
     <div className="w-full max-w-[1600px] px-6 sm:px-8 xl:px-10 py-7 mx-auto">
@@ -594,11 +634,8 @@ function RequestsPage() {
                             <button
                               className="border-0 bg-transparent rounded-lg text-zinc-700 grid place-items-center h-[30px] w-[30px] transition-colors hover:!bg-red-50 hover:!text-red-700 cursor-pointer"
                               title="Excluir solicitação"
-                              onClick={() => {
-                                if (window.confirm(`Excluir “${item.titulo}”?`)) {
-                                  deleteRequest.mutate(item.id);
-                                }
-                              }}
+                              aria-label={`Excluir ${formatCodigo(item.codigo)}`}
+                              onClick={() => openDelete(item)}
                             >
                               <Trash2 size={15} />
                             </button>
@@ -644,6 +681,96 @@ function RequestsPage() {
       <div className="flex items-center gap-1.5 mt-3 px-1 text-muted text-xs font-medium">
         <ArrowDownUp size={14} className="text-zinc-400" /> Os pedidos mais recentes aparecem primeiro.
       </div>
+
+      {deleting && (
+        <div
+          className="fixed z-80 inset-0 bg-black/60 backdrop-blur-sm grid place-items-center p-5 animate-fade"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeDelete();
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') closeDelete();
+          }}
+        >
+          <form
+            onSubmit={handleDeleteSubmit}
+            className="w-[min(440px,100%)] bg-white border border-black/10 rounded-[20px] shadow-2xl animate-modal p-6 max-sm:p-5 max-sm:rounded-[14px]"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-modal-title"
+            aria-describedby="delete-modal-desc"
+          >
+            <div className="flex items-center gap-3">
+              <span className="h-10 w-10 shrink-0 rounded-xl bg-red-100 text-red-700 grid place-items-center">
+                <Trash2 size={20} />
+              </span>
+              <h2 id="delete-modal-title" className="font-display font-bold text-[20px] tracking-tight m-0 text-ink">
+                Excluir solicitação?
+              </h2>
+            </div>
+            <p id="delete-modal-desc" className="text-[13.5px] text-zinc-700 font-medium leading-relaxed mt-2 mb-4">
+              Você está prestes a excluir{' '}
+              <strong className="text-ink font-bold break-words">
+                {formatCodigo(deleting.codigo)} · {deleting.titulo}
+              </strong>
+              . Essa ação não pode ser desfeita.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-1.5 mb-1.5 text-[13px] font-bold text-ink">
+              <label htmlFor="delete-confirm">Para confirmar, digite</label>
+              <button
+                type="button"
+                onClick={copyConfirmWord}
+                title="Copiar"
+                aria-label={`Copiar “${DELETE_CONFIRM_WORD}”`}
+                className="inline-flex items-center gap-1.5 font-mono text-[12.5px] font-semibold text-ink bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 rounded-md px-2 py-0.5 transition-colors cursor-pointer"
+              >
+                {DELETE_CONFIRM_WORD}
+                {copied ? <Check size={13} className="text-emerald-700" /> : <Copy size={13} className="text-zinc-600" />}
+              </button>
+              {copied && <span className="text-[11.5px] font-semibold text-emerald-700">Copiado!</span>}
+            </div>
+            <input
+              id="delete-confirm"
+              autoFocus
+              autoComplete="off"
+              placeholder={DELETE_CONFIRM_WORD}
+              value={confirmText}
+              onChange={(event) => setConfirmText(event.target.value)}
+              disabled={deleteRequest.isPending}
+              className="w-full border border-zinc-300 rounded-[10px] py-[11px] px-3.5 text-ink outline-none bg-white text-[13.5px] font-medium transition-all hover:border-zinc-400 focus:border-black placeholder:text-zinc-500"
+            />
+
+            <footer className="flex justify-end gap-2.5 pt-5 max-sm:flex-wrap">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-2 min-h-[42px] px-5 rounded-[10px] text-[13px] font-semibold whitespace-nowrap bg-white border border-zinc-300 text-ink hover:border-zinc-400 hover:bg-zinc-100 transition-all max-sm:flex-1 cursor-pointer"
+                onClick={closeDelete}
+                disabled={deleteRequest.isPending}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center gap-2 min-h-[42px] px-5 rounded-[10px] text-[13px] font-semibold whitespace-nowrap bg-red-600 !text-white border border-red-600 shadow-sm hover:bg-red-700 transition-all max-sm:flex-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={confirmText.trim().toLowerCase() !== DELETE_CONFIRM_WORD || deleteRequest.isPending}
+              >
+                {deleteRequest.isPending ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin !text-white" />
+                    <span className="!text-white">Excluindo…</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} className="!text-white" />
+                    <span className="!text-white">Excluir</span>
+                  </>
+                )}
+              </button>
+            </footer>
+          </form>
+        </div>
+      )}
 
       {detailId && (
         <div
