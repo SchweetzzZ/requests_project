@@ -25,9 +25,20 @@ const criarSolicitacaoSchema = z.object({
 });
 
 const atualizarSolicitacaoSchema = z.object({
-  titulo: z.string().min(3, 'O título deve ter pelo menos 3 caracteres').optional(),
-  descricao: z.string().min(3, 'A descrição deve ter pelo menos 3 caracteres').optional(),
-  categoria: z.enum(CATEGORIAS_SOLICITACAO, { error: 'Categoria inválida. Categorias permitidas: TI, RH, Compras, Financeiro, Infraestrutura' }).optional(),
+  titulo: z
+    .string()
+    .min(3, 'O título deve ter pelo menos 3 caracteres')
+    .optional(),
+  descricao: z
+    .string()
+    .min(3, 'A descrição deve ter pelo menos 3 caracteres')
+    .optional(),
+  categoria: z
+    .enum(CATEGORIAS_SOLICITACAO, {
+      error:
+        'Categoria inválida. Categorias permitidas: TI, RH, Compras, Financeiro, Infraestrutura',
+    })
+    .optional(),
 });
 
 const alterarStatusSolicitacaoSchema = z.object({
@@ -62,16 +73,16 @@ const filtroSolicitacaoSchema = z
     },
   );
 
-export class CriarSolicitacaoDto extends createZodDto(criarSolicitacaoSchema) { }
+export class CriarSolicitacaoDto extends createZodDto(criarSolicitacaoSchema) {}
 export class AtualizarSolicitacaoDto extends createZodDto(
   atualizarSolicitacaoSchema,
-) { }
+) {}
 export class AlterarStatusSolicitacaoDto extends createZodDto(
   alterarStatusSolicitacaoSchema,
-) { }
+) {}
 export class FiltroSolicitacaoDto extends createZodDto(
   filtroSolicitacaoSchema,
-) { }
+) {}
 
 export const solicitacaoResponseSchema = z.object({
   id: z.string().uuid(),
@@ -107,13 +118,13 @@ export const excluirSolicitacaoResponseSchema = z.object({
 
 export class SolicitacaoResponseDto extends createZodDto(
   solicitacaoResponseSchema,
-) { }
+) {}
 export class ListagemSolicitacoesResponseDto extends createZodDto(
   listagemSolicitacoesResponseSchema,
-) { }
+) {}
 export class DashboardResponseDto extends createZodDto(
   dashboardResponseSchema,
-) { }
+) {}
 export class ExcluirSolicitacaoResponseDto extends createZodDto(
   excluirSolicitacaoResponseSchema,
-) { }
+) {}

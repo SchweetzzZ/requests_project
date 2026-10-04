@@ -1,5 +1,16 @@
-import { Injectable, Inject, NotFoundException, BadRequestException, ForbiddenException, } from '@nestjs/common';
-import { CriarSolicitacaoDto, AtualizarSolicitacaoDto, AlterarStatusSolicitacaoDto, FiltroSolicitacaoDto, } from './dto/solicitacao.dto';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
+import {
+  CriarSolicitacaoDto,
+  AtualizarSolicitacaoDto,
+  AlterarStatusSolicitacaoDto,
+  FiltroSolicitacaoDto,
+} from './dto/solicitacao.dto';
 import { eq, and, or, ilike, sql, type SQL, desc } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../db/db.constants';
 import { solicitacoes } from './schema/solicitacao.schema';
@@ -7,19 +18,25 @@ import { users } from '../auth/schema/schema';
 
 @Injectable()
 export class SolicitacoesService {
-  constructor(@Inject(DRIZZLE) readonly db: DrizzleDB) { }
+  constructor(@Inject(DRIZZLE) readonly db: DrizzleDB) {}
 
   async create(dto: CriarSolicitacaoDto, usuarioId: string) {
-    const [criada] = await this.db.insert(solicitacoes).values({
-      usuario_id: usuarioId,
-      ...dto,
-    }).returning();
+    const [criada] = await this.db
+      .insert(solicitacoes)
+      .values({
+        usuario_id: usuarioId,
+        ...dto,
+      })
+      .returning();
 
     return criada;
   }
 
   async update(id: string, dto: AtualizarSolicitacaoDto, usuarioId: string) {
-    const [existente] = await this.db.select().from(solicitacoes).where(eq(solicitacoes.id, id));
+    const [existente] = await this.db
+      .select()
+      .from(solicitacoes)
+      .where(eq(solicitacoes.id, id));
 
     if (!existente) {
       throw new NotFoundException('Solicitação não encontrada');
@@ -37,15 +54,22 @@ export class SolicitacoesService {
       );
     }
 
-    const [atualizada] = await this.db.update(solicitacoes).set({
-      ...dto,
-    }).where(eq(solicitacoes.id, id)).returning();
+    const [atualizada] = await this.db
+      .update(solicitacoes)
+      .set({
+        ...dto,
+      })
+      .where(eq(solicitacoes.id, id))
+      .returning();
 
     return atualizada;
   }
 
   async delete(id: string, usuarioId: string) {
-    const [existente] = await this.db.select().from(solicitacoes).where(eq(solicitacoes.id, id));
+    const [existente] = await this.db
+      .select()
+      .from(solicitacoes)
+      .where(eq(solicitacoes.id, id));
 
     if (!existente) {
       throw new NotFoundException('Solicitação não encontrada');
@@ -69,15 +93,22 @@ export class SolicitacoesService {
   }
 
   async updateStatus(id: string, dto: AlterarStatusSolicitacaoDto) {
-    const [existente] = await this.db.select().from(solicitacoes).where(eq(solicitacoes.id, id));
+    const [existente] = await this.db
+      .select()
+      .from(solicitacoes)
+      .where(eq(solicitacoes.id, id));
 
     if (!existente) {
       throw new NotFoundException('Solicitação não encontrada');
     }
 
-    const [atualizada] = await this.db.update(solicitacoes).set({
-      status: dto.status,
-    }).where(eq(solicitacoes.id, id)).returning();
+    const [atualizada] = await this.db
+      .update(solicitacoes)
+      .set({
+        status: dto.status,
+      })
+      .where(eq(solicitacoes.id, id))
+      .returning();
 
     return atualizada;
   }
