@@ -59,7 +59,7 @@ docker compose up -d postgres
    cd backend
    npm install
    ```
-2. Crie o arquivo `backend/.env` com as configurações de banco (vide seção [Configuração](#3-configuração)).
+2. Crie o arquivo `backend/.env` com as configurações de banco (vide seção [Configuração](#3-configuração)). Para criar os usuários de demonstração, inclua também `RUN_MIGRATIONS=true`, `DEMO_USERS=usuario1,usuario2` e `DEMO_PASSWORD=Senha123!`.
 3. Execute as migrações no banco:
    ```bash
    npm run db:migrate
@@ -96,7 +96,9 @@ Abaixo estão detalhadas todas as variáveis de configuração suportadas pelo s
 | `DATABASE_URL` | String de conexão JDBC/Postgres completa | `postgres://postgres:postgrespassword@postgres:5432/requests_db` |
 | `CORS_ORIGIN` | Domínios autorizados para Cross-Origin | `http://localhost,http://localhost:80,http://localhost:5173,http://localhost:3000` |
 | `JWT_SECRET` | Segredo para assinatura dos tokens JWT | `your_super_secret_jwt_key` |
-| `RUN_MIGRATIONS` | Executar migrações do Drizzle no startup | `true` |
+| `RUN_MIGRATIONS` | Executar migrações do Drizzle no startup (e o seed dos usuários de demonstração) | `true` |
+| `DEMO_USERS` | Usuários de demonstração a criar no primeiro start, separados por vírgula. Vazio = não cria | `usuario1,usuario2` |
+| `DEMO_PASSWORD` | Senha (mín. 8 caracteres) comum a todos os usuários de `DEMO_USERS` | `Senha123!` |
 | `FRONTEND_PORT` | Porta em que o Frontend web é exposto | `80` |
 | `VITE_API_URL` | URL de consumo da API consumida pelo cliente | `http://localhost:3000` |
 
@@ -117,7 +119,9 @@ Para testes e validação da autoria entre contas distintas, sugerimos os seguin
 * **Usuário (`user`):** Mínimo de **3 caracteres**.
 * **Senha (`password`):** Mínimo de **8 caracteres**.
 
-> **Como cadastrar:** O cadastro é realizado diretamente na tela inicial (`/login`), clicando no link **"Criar conta"**, ou via Swagger no endpoint `POST /auth/register`. O login é liberado imediatamente após o cadastro.
+> **Usuários já criados:** `usuario1` e `usuario2` são criados automaticamente na primeira inicialização do backend, a partir das variáveis `DEMO_USERS` e `DEMO_PASSWORD` (o `docker compose` já traz esses valores como padrão; o seed roda junto com as migrações, quando `RUN_MIGRATIONS=true`). Nas inicializações seguintes, quem já existe é ignorado. Se as variáveis não forem informadas, nenhum usuário é criado e o backend apenas registra um aviso no log; nesse caso, use **"Criar conta"**.
+>
+> **Cadastro de novos usuários (opcional):** O cadastro é realizado diretamente na tela inicial (`/login`), clicando no link **"Criar conta"**, ou via Swagger no endpoint `POST /auth/register`. O login é liberado imediatamente após o cadastro.
 
 ---
 
@@ -205,12 +209,12 @@ Após inicializar os serviços, acesse os componentes nos seguintes endereços:
 
 1. **Primeiro Acesso:**
    - Acesse o Frontend em `http://localhost:80` (Docker) ou `http://localhost:5173` (Dev).
-   - Como o banco de dados é inicializado zerado com as tabelas criadas pelas migrações, basta criar uma conta na própria tela clicando em **"Criar conta"**.
-   - Use uma das credenciais sugeridas (por exemplo, usuário `usuario1` e senha `Senha123!`).
-   - Após criar a conta, faça login com as credenciais cadastradas. O token JWT será atribuído automaticamente.
+   - Os usuários de demonstração `usuario1` e `usuario2` (senha `Senha123!`) já são criados automaticamente na primeira inicialização (via `DEMO_USERS` e `DEMO_PASSWORD`), então não é preciso se cadastrar.
+   - Faça login com uma dessas credenciais. O token JWT será atribuído automaticamente.
+   - Se preferir, também é possível criar uma conta nova pelo link **"Criar conta"**.
 
 2. **Testando com Múltiplos Usuários:**
-   - Para validar o isolamento e as regras de autoria, registre um segundo usuário (por exemplo, `usuario2` / `Senha123!`).
+   - Para validar o isolamento e as regras de autoria, entre com `usuario1` em uma janela e com `usuario2` em outra (use uma janela anônima, para não compartilhar o cookie de sessão).
    - Observe que as regras de negócio do sistema garantem que apenas o autor original da solicitação pode **editar o conteúdo** ou **excluir** o chamado enquanto ele estiver com status `Aberto`.
    - A **alteração de status** (`Aberto` -> `Em Atendimento` -> `Concluído`) pode ser realizada para fins de triagem por qualquer membro da equipe.
 
@@ -229,6 +233,7 @@ Para avaliar todas as funcionalidades implementadas na aplicação:
    - Utilize a barra de busca para filtrar solicitações pelo título ou pelo código (ex.: `SOL-0001`), e os campos de data inicial e final para filtrar por período.
    - Utilize os filtros de **Status** (`Todos`, `Aberto`, `Em Atendimento`, `Concluído`) e **Categoria**.
    - Os filtros e a paginação são mantidos em estado local da página.
+   - Clique no ícone de olho na linha de uma solicitação para abrir o modal de detalhes.
 
 3. **Ciclo de Vida do Chamado (Status):**
    - No card ou na linha da solicitação, altere o status de `Aberto` para `Em Atendimento` e, em seguida, para `Concluído`.

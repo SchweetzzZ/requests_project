@@ -45,6 +45,8 @@ erDiagram
 | `name` | varchar(255) | Não | - | UNIQUE (`users_name_unique`) | Nome de usuário usado no login (campo `user` na API). |
 | `password` | varchar(255) | Não | - | - | Hash bcrypt (custo 12) da senha; nunca a senha em texto. |
 
+**Dados iniciais:** no primeiro start do backend (com `RUN_MIGRATIONS=true`), o seed cria os usuários listados em `DEMO_USERS` (padrão `usuario1` e `usuario2`, senha de `DEMO_PASSWORD`), caso ainda não existam (ver `backend/src/modules/db/seed.ts`).
+
 ### 3.2 `solicitacoes`
 
 | Campo | Tipo | Nulo? | Padrão | Chave/Restrição | Descrição |

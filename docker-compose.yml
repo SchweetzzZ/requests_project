@@ -33,6 +33,8 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost,http://localhost:80,http://localhost:5173,http://localhost:3000}
       JWT_SECRET: ${JWT_SECRET:-supersecretlocaljwtkey}
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      DEMO_USERS: ${DEMO_USERS-usuario1,usuario2}
+      DEMO_PASSWORD: ${DEMO_PASSWORD-Senha123!}
     ports:
       - "${PORT:-3000}:3000"
 

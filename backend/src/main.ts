@@ -5,10 +5,12 @@ import cookieParser from 'cookie-parser';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { runMigrations } from './modules/db/migrate.js';
+import { runSeed } from './modules/db/seed.js';
 
 async function bootstrap() {
   if (process.env.RUN_MIGRATIONS === 'true') {
     await runMigrations();
+    await runSeed();
   }
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);

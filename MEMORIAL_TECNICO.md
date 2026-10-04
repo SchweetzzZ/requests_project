@@ -1,8 +1,7 @@
 # Memorial Técnico de Desenvolvimento
 
 ## 1. Apresentação e Objetivo
-Este documento compõe a documentação oficial da solução e tem como finalidade registrar e fundamentar o processo decisório, as escolhas tecnológicas e as decisões arquiteturais adotadas no desenvolvimento do Sistema de Gerenciamento de Solicitações Internas. Ao final pontuarei melhorias poderiam ser feitas em um contexto com maior tempo e sem limitações
-impostas pelo contexto da avaliação.
+Este documento compõe a documentação oficial da solução e tem como finalidade registrar e fundamentar o processo decisório, as escolhas tecnológicas e as decisões arquiteturais adotadas no desenvolvimento do Sistema de Gerenciamento de Solicitações Internas. Ao final, são apontadas melhorias que poderiam ser feitas em um contexto com maior tempo e sem as limitações impostas pelo contexto da avaliação.
 
 ---
 
@@ -57,6 +56,7 @@ A aplicação adota o modelo de **Arquitetura Cliente-Servidor Desacoplada**. O 
 O modelo de dados é relacional e normalizado em torno de duas entidades centrais: `users` e `solicitacoes`.
 ***Identificadores UUID:*** As tabelas utilizam identificadores UUID como chaves primárias. Por não serem sequenciais, eles tornam os identificadores menos previsíveis.
 ***Enums Nativos no Banco de Dados:*** Campos com valores restritos e padronizados — como o status (`Aberto`, `Em Atendimento`, `Concluído`) e a categoria (`TI`, `RH`, `Compras`, etc.) — foram modelados com `pgEnum` diretamente no PostgreSQL, garantindo integridade e consistência a nível de banco.
+***Código Sequencial Legível:*** Além do UUID (chave primária, usado nas rotas da API), cada solicitação possui uma coluna `codigo` numérica, gerada pelo banco (`GENERATED ALWAYS AS IDENTITY`, única), exibida como `SOL-0001`. O prefixo e o preenchimento com zeros são apenas de apresentação, o que permite alterar o formato sem migration. A busca de texto também aceita esse código (`SOL-0001`, `sol-1` ou `1`).
 ***Integridade Referencial:*** A relação entre solicitações e usuários é garantida por Foreign Key estrita (`solicitacoes.usuario_id -> users.id`), garantindo rastreabilidade do autor da solicitação e prevenindo registros órfãos.
 
 ### 3.4. Padrões de Projeto (Design Patterns) Utilizados
@@ -74,27 +74,30 @@ A comunicação baseia-se em APIs RESTful. O backend gera sua especificação vi
 ### 3.7. Organização do Código-Fonte
 O projeto adota uma estrutura em repositório único dividido por domínios (`/backend` e `/frontend`). Embora compartilhem o repositório para facilitar a orquestração do ambiente local com Docker Compose e o pipeline de CI/CD no GitHub Actions, cada aplicação possui dependências e scripts isolados (`package.json` próprio). No backend, os arquivos são agrupados por domínio funcional (`auth`, `solicitacoes`, `db`), garantindo alta coesão e baixo acoplamento entre os módulos.
 
-### 4. Análise Crítica do Projeto
+## 4. Análise Crítica do Projeto
 
 ### 4.1. Limitações da Solução Implementada
 ***Modelo de Permissões Plano (Flat Permissions):** No escopo atual, qualquer usuário autenticado possui as mesmas permissões para listar, criar e alterar o status das solicitações, inexistindo a diferenciação entre quem solicita e quem atende. O ideal seria evoluir para um sistema de permissões mais robusto, como o RBAC (Role-Based Access Control).
 ***Ciclo de Vida da Sessão:** A autenticação utiliza um único token JWT estático gravado em cookie, sem rotação periódica via Refresh Token, o que exige novo login manual após a expiração.
 ***Comunicação Unidirecional (Polling/Refetch):** A atualização dos dados na tela depende de revalidação pelo TanStack Query no frontend, sem o uso de WebSockets ou SSE para refletir alterações de status em tempo real. Dependendo da demanda, poderíamos adicionar um SSE para atualização em tempo real.
+***Fuso Horário no Filtro de Período:** A coluna `data_criacao` é um `timestamp` sem fuso, gravado em UTC. O filtro por período compara o dia no fuso fixo `America/Sao_Paulo`, diretamente no SQL, para coincidir com o que o usuário vê na tela. Em um sistema multi-região, o fuso viria do perfil do usuário ou o campo seria `timestamptz`.
+***Limite de Tamanho dos Textos:** Título e descrição são `varchar(255)`. Em produção, a descrição seria `text`, com limite de tamanho definido na validação.
 ***Ausência de Trilha de Auditoria:** O banco de dados registra apenas a data de criação do chamado e o autor original, sem histórico cronológico das mutações intermediárias de status. Seria ideal adicionar uma tabela de auditoria para rastrear as alterações de status e outras informações relevantes.
 
-#### 4.2. Requisitos que Poderiam ser Aperfeiçoados
+### 4.2. Requisitos que Poderiam ser Aperfeiçoados
 ***Classificação por Prioridade/Gravidade:** O escopo atual não contempla níveis de urgência (como Baixa, Média, Alta ou Crítica). Em um cenário real, a fila de chamados não deve depender apenas da ordem cronológica de abertura, mas sim do impacto da solicitação na operação da empresa.
 ***Justificativa e Parecer de Encerramento:** O fluxo atual permite transitar uma solicitação diretamente para `Concluído` sem a obrigatoriedade de registrar uma resposta ou solução técnica. Exigir um campo de resolução no fechamento agregaria rastreabilidade e permitiria criar uma base de conhecimento para problemas recorrentes.
 ***Máquina de Estados e Transições Obrigatórias:** A especificação não impõe travas de transição de status. Poderia ser aperfeiçoada com regras formais de máquina de estados, impedindo, por exemplo, que um chamado seja concluído sem antes passar por `Em Atendimento`.
 
-#### 4.3. Melhorias Futuras
+### 4.3. Melhorias Futuras
 ***Controle de Acesso Baseado em Funções (RBAC Completo):** Implementação de perfis de usuário (`SOLICITANTE`, `ATENDENTE`, `ADMIN`) com permissões validadas no backend através de decoradores customizados e de um `RolesGuard` dedicado no NestJS.
 ***Sessão com Refresh Token e Login Social (SSO):** Adoção de Refresh Tokens rotativos armazenados em banco ou Redis para renovação silenciosa de sessão. Em um contexto corporativo, integração com provedores de identidade OAuth2.
 ***Painel Administrativo e Métricas:** Criação de um dashboard gerencial com indicadores-chave de desempenho (KPIs), como Tempo Médio de Atendimento (TMA), volume de solicitações por categoria e gargalos departamentais.
 ***Operações em Lote e Relatórios:** Suporte a importação massiva de solicitações via upload e processamento de planilhas (CSV/XLSX), além de exportação de dados filtrados para relatórios em PDF e Excel.
 ***Organização do Monorepo e Orquestração de Builds:** Com o crescimento da aplicação, poderia ser adotado o npm workspaces para centralizar a gestão das dependências e facilitar o compartilhamento de pacotes entre frontend e backend. Caso o número de aplicações e a complexidade do pipeline aumentassem, ferramentas como Turborepo poderiam otimizar a execução e o cache de builds e testes.
 
-#### 4.4. Decisões que Seriam Diferentes em um Ambiente Corporativo de Produção
+### 4.4. Decisões que Seriam Diferentes em um Ambiente Corporativo de Produção
 ***Observabilidade e Telemetria:** Em produção de larga escala, a aplicação contaria com monitoramento via OpenTelemetry (Datadog ou Grafana Loki/Prometheus).
 ***Filas Assíncronas e Cache com Redis:** O envio de e-mails, o processamento de planilhas e a geração de relatórios pesados seriam desacoplados do ciclo de requisição HTTP da API, sendo delegados a filas assíncronas em segundo plano com **BullMQ / Redis**.
+***Usuários de Demonstração:** O backend cria os usuários listados em `DEMO_USERS` (`usuario1` e `usuario2`), com a senha de `DEMO_PASSWORD`, na primeira inicialização (seed idempotente, junto das migrações), para que a avaliação não dependa de cadastro prévio. Credenciais não ficam no código: sem as variáveis, o seed apenas registra um aviso e não cria nada. Em produção real, não haveria credenciais fixas: os usuários viriam de um provedor de identidade (SSO) ou de um fluxo administrativo, e o seed ficaria restrito a ambientes de desenvolvimento.
 ***Armazenamento de Arquivos em Object Storage:*** Uploads de anexos seriam gerenciados via URLs pré-assinadas (*Presigned URLs*) diretamente para um bucket seguro (AWS S3 ou Cloudflare R2), retirando do banco de dados a responsabilidade de armazenar arquivos volumosos.
