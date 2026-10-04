@@ -1,0 +1,96 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ETAPA DE CI: Garante qualidade, integridade e testes
+  ci:
+    name: Lint, Build & Integration Tests
+    runs-on: ubuntu-latest
+
+    # Banco de dados real em container para o teste de integração
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: requests_test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      # VALIDAÇÕES DO BACKEND
+      - name: Instalar Dependências do Backend
+        run: npm ci
+        working-directory: ./backend
+
+      - name: Backend Lint
+        run: npm run lint
+        working-directory: ./backend
+
+      - name: Backend Build Check
+        run: npm run build
+        working-directory: ./backend
+
+      - name: Executar Testes Unitários e de Integração
+        run: npm run test:e2e
+        working-directory: ./backend
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgres://postgres:postgrespassword@localhost:5432/requests_test_db
+          JWT_SECRET: test_jwt_secret_key_12345
+          RUN_MIGRATIONS: true
+
+      # VALIDAÇÕES DO FRONTEND
+      - name: Instalar Dependências do Frontend
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Frontend Lint
+        run: npm run lint
+        working-directory: ./frontend
+
+      - name: Frontend Build Check
+        run: npm run build
+        working-directory: ./frontend
+
+  # ETAPA DE CD: Aciona a Railway somente após aprovação do CI
+  deploy:
+    name: Trigger Railway Deploy
+    runs-on: ubuntu-latest
+    needs: [ci]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Acionar Deploy no Backend via Webhook
+        if: "${{ secrets.RAILWAY_BACKEND_WEBHOOK != '' }}"
+        run: |
+          echo "Disparando build do Backend na Railway..."
+          curl -f -X POST "${{ secrets.RAILWAY_BACKEND_WEBHOOK }}"
+
+      - name: Acionar Deploy no Frontend via Webhook
+        if: "${{ secrets.RAILWAY_FRONTEND_WEBHOOK != '' }}"
+        run: |
+          echo "Disparando build do Frontend na Railway..."
+          curl -f -X POST "${{ secrets.RAILWAY_FRONTEND_WEBHOOK }}"
