@@ -54,7 +54,7 @@ function RootLayout() {
                 <Hexagon size={18} />
               </span>
               <span>
-                <strong className="block font-display font-bold text-[17px] tracking-tight text-ink">Atende</strong>
+                <strong className="block font-display font-bold text-[17px] tracking-tight text-ink">Solicita+</strong>
                 <small className="block text-muted text-xs font-medium mt-0.5">Portal interno</small>
               </span>
             </Link>

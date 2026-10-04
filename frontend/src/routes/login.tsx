@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { ArrowRight, Check, Eye, EyeOff, Hexagon } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export const Route = createFileRoute('/login')({ component: LoginPage });
@@ -36,10 +36,7 @@ function LoginPage() {
     <div className="flex justify-center min-h-screen bg-gradient-to-br from-zinc-100 to-white">
       <section className="w-full min-h-screen flex flex-col items-center justify-center px-7 py-10 relative max-sm:px-6 max-sm:py-14">
         <div className="w-full max-w-[380px]">
-          <div className="h-11 w-11 rounded-xl bg-violet-100 text-violet-800 grid place-items-center mb-6 max-sm:mb-6">
-            <Hexagon size={20} />
-          </div>
-          <div className="text-[11px] tracking-[1.25px] font-extrabold text-violet-800 mb-2.5">BEM-VINDO AO ATENDE</div>
+          <div className="text-[11px] tracking-[1.25px] font-extrabold text-violet-800 mb-2.5">BEM-VINDO AO SOLICITA+</div>
           <h2 className="font-display font-extrabold text-[28px] leading-tight tracking-tight text-ink max-sm:text-2xl">
             {isRegister ? 'Crie sua conta' : 'Bom ter você por aqui'}
           </h2>
@@ -103,12 +100,9 @@ function LoginPage() {
               {isRegister ? 'Entrar' : 'Criar conta'}
             </button>
           </div>
-          <div className="flex items-center justify-center gap-[7px] border-t border-line mt-6.5 pt-4.5 text-zinc-800 font-medium text-xs">
-            <Check size={14} className="text-green-600" /> Seus pedidos ficam organizados em um só lugar.
-          </div>
         </div>
         <div className="absolute bottom-5.5 text-zinc-600 font-medium text-[11px] max-sm:bottom-4.5 max-sm:text-center max-sm:w-full max-sm:text-[10px]">
-          © 2026 Atende <span className="px-1.5 text-zinc-400">·</span> Feito para a rotina real das equipes
+          © 2026 Solicita+ <span className="px-1.5 text-zinc-400">·</span> Feito para a rotina real das equipes
         </div>
       </section>
     </div>

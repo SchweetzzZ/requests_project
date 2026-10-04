@@ -125,7 +125,7 @@ export function CustomSelect<T extends string = string>({
       <button
         ref={triggerRef}
         type="button"
-        className={`${TRIGGER_VARIANTS[variant]} ${isFilterActive ? '!border-violet-400 !bg-violet-50/70 !text-violet-800 !font-semibold' : ''} ${isOpen ? '!border-violet-600 !ring-2 !ring-violet-600/15' : ''}`}
+        className={`${TRIGGER_VARIANTS[variant]} ${isFilterActive ? 'border-violet-400! bg-violet-50/70! !text-violet-800 !font-semibold' : ''} ${isOpen ? '!border-violet-600 !ring-2 !ring-violet-600/15' : ''}`}
         onClick={handleToggle}
         disabled={disabled}
         aria-haspopup="listbox"

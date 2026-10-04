@@ -313,7 +313,7 @@ function DashboardPage() {
         )}
       </section>
       <footer className="text-xs text-zinc-600 font-medium text-center pt-5.5 border-t border-line mt-5">
-        Atende · Feito para equipes que precisam de clareza · © 2026
+        Solicita+ · Feito para equipes que precisam de clareza · © 2026
       </footer>
     </div>
   );
