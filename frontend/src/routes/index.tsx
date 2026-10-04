@@ -29,16 +29,29 @@ function DashboardPage() {
   const inProgress = dashboard?.emAtendimento ?? 0;
   const completed = dashboard?.concluidas ?? 0;
 
+  const openPct = total > 0 ? Math.round((open / total) * 100) : 0;
+  const inProgressPct = total > 0 ? Math.round((inProgress / total) * 100) : 0;
+  const completedPct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  const radius = 36;
+  const circumference = 2 * Math.PI * radius;
+  const openLength = total > 0 ? (open / total) * circumference : 0;
+  const inProgressLength = total > 0 ? (inProgress / total) * circumference : 0;
+  const completedLength = total > 0 ? (completed / total) * circumference : 0;
+  const isSingleSegment = open === total || inProgress === total || completed === total;
+  const strokeCap: 'round' | 'butt' = isSingleSegment ? 'round' : 'butt';
+
   return (
-    <div className="w-[min(1120px,calc(100%-76px))] mx-auto py-8 max-md:w-[calc(100%-40px)] max-sm:w-[calc(100%-30px)] max-sm:pt-4.5">
-      <header className="flex items-center gap-2.5 text-xs font-semibold text-muted mb-11 max-md:mb-7.5 max-md:pl-12 max-sm:mb-7 max-sm:text-[11px]">
+    <div className="w-full max-w-[1600px] px-6 sm:px-8 xl:px-10 py-7 mx-auto">
+      <header className="flex items-center gap-2.5 text-xs font-semibold text-muted mb-3.5 max-md:mb-3 max-md:pl-12 max-sm:text-[11px]">
         <span className="text-zinc-900 font-bold">SEU ESPAÇO</span>
-        <span className="h-[3px] w-[3px] bg-zinc-500 rounded-full" /> Central de solicitações
+        <span className="h-[3px] w-[3px] bg-zinc-400 rounded-full" />
+        <span className="text-zinc-500">Central de solicitações</span>
       </header>
-      <section className="flex items-end justify-between gap-6 mb-7.5 max-sm:items-start max-sm:flex-col max-sm:gap-4 max-sm:mb-5.5">
+      <section className="flex items-end justify-between gap-6 mb-6 max-sm:items-start max-sm:flex-col max-sm:gap-4">
         <div>
-          <div className="text-[11px] tracking-[1.25px] font-extrabold text-violet-800 mb-2.5">VISÃO GERAL</div>
-          <h1 className="font-display font-extrabold text-4xl leading-tight tracking-tight text-ink max-sm:text-[28px]">
+          <div className="text-[11px] tracking-[1.25px] font-extrabold text-violet-800 mb-1.5 uppercase">VISÃO GERAL</div>
+          <h1 className="font-display font-extrabold text-3xl sm:text-4xl leading-tight tracking-tight text-ink">
             Olá, {user?.name?.split(' ')[0] ?? 'bem-vindo'}
           </h1>
         </div>
@@ -51,56 +64,189 @@ function DashboardPage() {
         <MetricCard label="Concluídas" value={completed} detail="finalizadas pela equipe" icon={<CheckCircle2 size={18} />} tone="green" loading={isLoadingDashboard} />
       </section>
 
-      <section className="grid grid-cols-1 gap-3.5 mt-4 max-sm:gap-2.5 max-sm:mt-2.5">
-        <div className="bg-white border border-line rounded-2xl shadow-sm p-5 min-h-[236px] max-md:min-h-[226px] max-sm:min-h-[210px]">
-          <div className="flex justify-between items-start gap-4.5">
-            <div>
-              <h2 className="font-display font-bold text-[17px] tracking-tight m-0 text-ink">Panorama dos pedidos</h2>
-              <p className="text-muted text-[13px] font-medium mt-1.5">Acompanhe a distribuição por etapa.</p>
+      <section className="mt-4 max-sm:mt-2.5">
+        <div className="bg-white border border-line rounded-2xl shadow-sm p-5 sm:p-6 transition-all">
+          <div className="flex flex-wrap justify-between items-center gap-3 pb-5 border-b border-line/80">
+            <div className="flex items-center gap-3">
+              <span className="h-9 w-9 rounded-xl bg-violet-100 text-violet-800 grid place-items-center shrink-0">
+                <BarChart3 size={18} />
+              </span>
+              <div>
+                <h2 className="font-display font-bold text-[17px] tracking-tight m-0 text-ink">Panorama dos pedidos</h2>
+                <p className="text-muted text-[13px] font-medium mt-0.5">Distribuição do fluxo de atendimento e taxa de conclusão.</p>
+              </div>
             </div>
-            <span className="h-8 w-8 rounded-[9px] bg-zinc-100 text-violet-800 grid place-items-center">
-              <BarChart3 size={17} />
-            </span>
           </div>
+
           {total > 0 ? (
-            <>
-              <div className="flex items-baseline gap-2 mt-7">
-                <strong className="font-display font-extrabold text-[26px] text-ink">{total}</strong>
-                <span className="text-xs text-muted font-medium">solicitações no total</span>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 pt-5 items-stretch">
+              {/* Resumo com Donut e Taxa de Conclusão */}
+              <div className="lg:col-span-5 flex items-center gap-4 sm:gap-5 p-4 sm:p-5 rounded-xl bg-zinc-50/70 border border-line/80">
+                <div className="relative w-24 h-24 shrink-0 flex items-center justify-center">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 96 96">
+                    <circle cx="48" cy="48" r={radius} fill="none" stroke="#e4e4e7" strokeWidth="7" />
+                    {open > 0 && (
+                      <circle
+                        cx="48"
+                        cy="48"
+                        r={radius}
+                        fill="none"
+                        stroke="#d97706"
+                        strokeWidth="7"
+                        strokeDasharray={`${openLength} ${circumference}`}
+                        strokeDashoffset={0}
+                        strokeLinecap={strokeCap}
+                        className="transition-all duration-500"
+                      />
+                    )}
+                    {inProgress > 0 && (
+                      <circle
+                        cx="48"
+                        cy="48"
+                        r={radius}
+                        fill="none"
+                        stroke="#0284c7"
+                        strokeWidth="7"
+                        strokeDasharray={`${inProgressLength} ${circumference}`}
+                        strokeDashoffset={-openLength}
+                        strokeLinecap={strokeCap}
+                        className="transition-all duration-500"
+                      />
+                    )}
+                    {completed > 0 && (
+                      <circle
+                        cx="48"
+                        cy="48"
+                        r={radius}
+                        fill="none"
+                        stroke="#16a34a"
+                        strokeWidth="7"
+                        strokeDasharray={`${completedLength} ${circumference}`}
+                        strokeDashoffset={-(openLength + inProgressLength)}
+                        strokeLinecap={strokeCap}
+                        className="transition-all duration-500"
+                      />
+                    )}
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                    <span className="font-display font-black text-xl text-ink leading-none">{total}</span>
+                    <span className="text-[10px] font-bold text-muted uppercase tracking-wider mt-1">total</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted">Taxa de Resolução</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <strong className="font-display font-black text-3xl tracking-tight text-ink">{completedPct}%</strong>
+                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full whitespace-nowrap">
+                      {completed} de {total}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted font-medium mt-1.5 leading-snug">
+                    {completed === total
+                      ? 'Todas as solicitações foram concluídas pela equipe.'
+                      : `${open + inProgress} solicitação(ões) em andamento no momento.`}
+                  </p>
+                </div>
               </div>
-              <div className="h-3 flex overflow-hidden rounded-[10px] bg-line gap-[3px] mt-3.5" role="img" aria-label={`${open} abertas, ${inProgress} em atendimento e ${completed} concluídas`}>
-                <span className="block min-w-[3px] rounded-[10px] bg-amber-600" style={{ width: `${(open / total) * 100}%` }} />
-                <span className="block min-w-[3px] rounded-[10px] bg-sky-600" style={{ width: `${(inProgress / total) * 100}%` }} />
-                <span className="block min-w-[3px] rounded-[10px] bg-green-600" style={{ width: `${(completed / total) * 100}%` }} />
+
+              {/* Linhas de status individuais */}
+              <div className="lg:col-span-7 flex flex-col gap-2.5 justify-center">
+                {/* Abertas */}
+                <div className="p-3 sm:p-3.5 rounded-xl bg-zinc-50/70 border border-line/80 flex items-center gap-3.5 transition-all hover:bg-zinc-50">
+                  <span className="h-8 w-8 rounded-lg bg-amber-100 text-amber-800 grid place-items-center shrink-0">
+                    <CircleDashed size={16} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-ink">Abertas</span>
+                        <span className="text-[11px] text-muted hidden sm:inline font-medium">· Aguardando atendimento</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-extrabold text-ink">{open}</span>
+                        <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200/70 px-1.5 py-0.5 rounded-md">
+                          {openPct}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-zinc-200/80 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-amber-500 rounded-full transition-all duration-500"
+                        style={{ width: `${openPct}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Em atendimento */}
+                <div className="p-3 sm:p-3.5 rounded-xl bg-zinc-50/70 border border-line/80 flex items-center gap-3.5 transition-all hover:bg-zinc-50">
+                  <span className="h-8 w-8 rounded-lg bg-sky-100 text-sky-800 grid place-items-center shrink-0">
+                    <Clock3 size={16} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-ink">Em atendimento</span>
+                        <span className="text-[11px] text-muted hidden sm:inline font-medium">· Em análise e resolução</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-extrabold text-ink">{inProgress}</span>
+                        <span className="text-[11px] font-semibold text-sky-700 bg-sky-50 border border-sky-200/70 px-1.5 py-0.5 rounded-md">
+                          {inProgressPct}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-zinc-200/80 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-sky-600 rounded-full transition-all duration-500"
+                        style={{ width: `${inProgressPct}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Concluídas */}
+                <div className="p-3 sm:p-3.5 rounded-xl bg-zinc-50/70 border border-line/80 flex items-center gap-3.5 transition-all hover:bg-zinc-50">
+                  <span className="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-800 grid place-items-center shrink-0">
+                    <CheckCircle2 size={16} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-ink">Concluídas</span>
+                        <span className="text-[11px] text-muted hidden sm:inline font-medium">· Finalizadas pela equipe</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-extrabold text-ink">{completed}</span>
+                        <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.5 rounded-md">
+                          {completedPct}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-zinc-200/80 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-600 rounded-full transition-all duration-500"
+                        style={{ width: `${completedPct}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-6 flex-wrap mt-4.5 max-md:gap-3 max-sm:gap-2.5">
-                <span className="flex items-center gap-[7px] text-zinc-900 text-xs font-semibold max-md:text-[11px]">
-                  <i className="h-2 w-2 rounded-full bg-amber-600" />
-                  Abertas <b className="text-ink text-xs font-extrabold ml-0.5">{open}</b>
-                </span>
-                <span className="flex items-center gap-[7px] text-zinc-900 text-xs font-semibold max-md:text-[11px]">
-                  <i className="h-2 w-2 rounded-full bg-sky-600" />
-                  Em atendimento <b className="text-ink text-xs font-extrabold ml-0.5">{inProgress}</b>
-                </span>
-                <span className="flex items-center gap-[7px] text-zinc-900 text-xs font-semibold max-md:text-[11px]">
-                  <i className="h-2 w-2 rounded-full bg-green-600" />
-                  Concluídas <b className="text-ink text-xs font-extrabold ml-0.5">{completed}</b>
-                </span>
-              </div>
-            </>
+            </div>
           ) : (
-            <div className="flex flex-col items-center text-center px-3.5 pt-6 pb-1">
-              <span className="h-[42px] w-[42px] rounded-xl bg-violet-100 text-violet-800 grid place-items-center mb-3">
-                <TicketCheck size={22} />
+            <div className="flex flex-col items-center text-center px-3.5 pt-8 pb-3">
+              <span className="h-[46px] w-[46px] rounded-xl bg-violet-100 text-violet-800 grid place-items-center mb-3">
+                <TicketCheck size={24} />
               </span>
               <strong className="text-sm font-bold text-ink">Seu painel começa com um pedido</strong>
-              <p className="max-w-[310px] text-muted text-[12.5px] font-medium leading-relaxed mt-1.5 mb-2.5">
-                Quando as solicitações forem registradas, o panorama aparece aqui.
+              <p className="max-w-[320px] text-muted text-[13px] font-medium leading-relaxed mt-1 mb-3">
+                Assim que novas solicitações forem registradas, o panorama e a taxa de conclusão aparecem aqui.
               </p>
               <Link
                 to="/solicitacoes"
                 search={{ novo: true }}
-                className="border-0 bg-none inline-flex items-center gap-1.5 text-violet-800 font-bold text-[12.5px] py-1 hover:text-violet-900 hover:underline"
+                className="border-0 bg-none inline-flex items-center gap-1.5 text-violet-800 font-bold text-[13px] py-1 hover:text-violet-900 hover:underline"
               >
                 Criar primeira solicitação <ArrowRight size={15} />
               </Link>

@@ -1,14 +1,18 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import {
   AlertCircle,
   ArrowDownUp,
   ArrowRight,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  CircleDashed,
   CircleX,
   ClipboardList,
+  Clock3,
   FilePlus2,
+  Layers,
   Loader2,
   Pencil,
   Plus,
@@ -22,6 +26,7 @@ import {
   useAlterarStatus,
   useAtualizarSolicitacao,
   useCriarSolicitacao,
+  useDashboard,
   useExcluirSolicitacao,
   useSolicitacoes,
 } from '../hooks/useSolicitacoes';
@@ -86,6 +91,20 @@ function RequestsPage() {
   const [description, setDescription] = useState('');
   const [formCategory, setFormCategory] = useState<Categoria>('TI');
   const [formErrors, setFormErrors] = useState<{ title?: string; description?: string }>({});
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: dashboard, isLoading: isLoadingDashboard } = useDashboard();
+
+  useEffect(() => {
+    function handleGlobalKeyDown(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    }
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   const { data, isLoading, isError } = useSolicitacoes({
     page,
@@ -199,20 +218,21 @@ function RequestsPage() {
   const isSaving = createRequest.isPending || updateRequest.isPending;
 
   return (
-    <div className="w-[min(1120px,calc(100%-76px))] mx-auto py-8 max-md:w-[calc(100%-40px)] max-sm:w-[calc(100%-30px)] max-sm:pt-4.5">
-      <header className="flex items-center gap-2.5 text-xs font-semibold text-muted mb-11 max-md:mb-7.5 max-md:pl-12 max-sm:mb-7 max-sm:text-[11px]">
-        <Link to="/" className="text-zinc-900 font-bold">Seu espaço</Link>
-        <span className="h-[3px] w-[3px] bg-zinc-500 rounded-full" />Solicitações
+    <div className="w-full max-w-[1600px] px-6 sm:px-8 xl:px-10 py-7 mx-auto">
+      <header className="flex items-center gap-2.5 text-xs font-semibold text-muted mb-3.5 max-md:mb-3 max-md:pl-12 max-sm:text-[11px]">
+        <Link to="/" className="text-zinc-900 font-bold hover:text-violet-800 transition-colors">Seu espaço</Link>
+        <span className="h-[3px] w-[3px] bg-zinc-400 rounded-full" />
+        <span className="text-zinc-500">Solicitações</span>
       </header>
 
-      <section className="flex items-end justify-between gap-6 mb-6.5 max-sm:items-start max-sm:flex-col max-sm:gap-4 max-sm:mb-5.5">
+      <section className="flex items-center justify-between gap-6 mb-6 max-sm:items-start max-sm:flex-col max-sm:gap-4">
         <div>
-          <div className="text-[11px] tracking-[1.25px] font-extrabold text-violet-800 mb-2.5">GESTÃO DO DIA A DIA</div>
-          <h1 className="font-display font-extrabold text-4xl leading-tight tracking-tight text-ink max-sm:text-[28px]">Solicitações</h1>
-          <p className="text-sm text-zinc-800 font-medium mt-2.5 max-sm:text-[13px]">Organize pedidos e acompanhe cada etapa com clareza.</p>
+          <div className="text-[11px] tracking-[1.25px] font-extrabold text-violet-800 mb-1.5 uppercase">GESTÃO DO DIA A DIA</div>
+          <h1 className="font-display font-extrabold text-3xl sm:text-4xl leading-tight tracking-tight text-ink">Solicitações</h1>
+          <p className="text-sm text-zinc-600 font-medium mt-1">Organize pedidos, filtre por área e acompanhe cada etapa com clareza.</p>
         </div>
         <button
-          className="inline-flex items-center justify-center gap-2 min-h-[40px] px-4 rounded-[10px] text-[13px] font-semibold whitespace-nowrap bg-ink !text-white border border-ink shadow-sm hover:bg-zinc-800 hover:-translate-y-px transition-all cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 min-h-[42px] px-5 rounded-xl text-[13px] font-semibold whitespace-nowrap bg-zinc-900 !text-white border border-zinc-900 shadow-sm hover:bg-zinc-800 hover:-translate-y-px transition-all cursor-pointer shrink-0"
           onClick={openCreate}
         >
           <Plus size={16} className="!text-white shrink-0" />
@@ -220,111 +240,240 @@ function RequestsPage() {
         </button>
       </section>
 
+      {/* Cards de Métricas e Filtros Rápidos */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-6" aria-label="Resumo e filtros rápidos">
+        <button
+          type="button"
+          onClick={() => {
+            setStatus('');
+            setPage(1);
+          }}
+          className={`text-left p-4.5 rounded-2xl border transition-all duration-150 cursor-pointer ${
+            status === ''
+              ? 'bg-white border-violet-600 shadow-sm ring-2 ring-violet-600/15'
+              : 'bg-white border-line shadow-2xs hover:border-zinc-300 hover:shadow-xs'
+          }`}
+        >
+          <div className="flex items-center justify-between text-zinc-900 text-xs font-semibold">
+            <span>Total de solicitações</span>
+            <span className="h-8 w-8 rounded-lg grid place-items-center bg-zinc-100 text-zinc-700">
+              <Layers size={16} />
+            </span>
+          </div>
+          <strong className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight block mt-2 text-ink">
+            {isLoadingDashboard ? '—' : (dashboard?.total ?? 0)}
+          </strong>
+          <span className="text-[11.5px] text-muted font-medium block mt-0.5">Todas as etapas registradas</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setStatus(status === 'Aberto' ? '' : 'Aberto');
+            setPage(1);
+          }}
+          className={`text-left p-4.5 rounded-2xl border transition-all duration-150 cursor-pointer ${
+            status === 'Aberto'
+              ? 'bg-amber-50/50 border-amber-500 shadow-sm ring-2 ring-amber-500/20'
+              : 'bg-white border-line shadow-2xs hover:border-zinc-300 hover:shadow-xs'
+          }`}
+        >
+          <div className="flex items-center justify-between text-zinc-900 text-xs font-semibold">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-amber-500" />
+              Abertas
+            </span>
+            <span className="h-8 w-8 rounded-lg grid place-items-center bg-amber-100 text-amber-800">
+              <CircleDashed size={16} />
+            </span>
+          </div>
+          <strong className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight block mt-2 text-ink">
+            {isLoadingDashboard ? '—' : (dashboard?.abertas ?? 0)}
+          </strong>
+          <span className="text-[11.5px] text-muted font-medium block mt-0.5">Aguardando atendimento</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setStatus(status === 'Em Atendimento' ? '' : 'Em Atendimento');
+            setPage(1);
+          }}
+          className={`text-left p-4.5 rounded-2xl border transition-all duration-150 cursor-pointer ${
+            status === 'Em Atendimento'
+              ? 'bg-sky-50/50 border-sky-500 shadow-sm ring-2 ring-sky-500/20'
+              : 'bg-white border-line shadow-2xs hover:border-zinc-300 hover:shadow-xs'
+          }`}
+        >
+          <div className="flex items-center justify-between text-zinc-900 text-xs font-semibold">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-sky-500" />
+              Em atendimento
+            </span>
+            <span className="h-8 w-8 rounded-lg grid place-items-center bg-sky-100 text-sky-800">
+              <Clock3 size={16} />
+            </span>
+          </div>
+          <strong className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight block mt-2 text-ink">
+            {isLoadingDashboard ? '—' : (dashboard?.emAtendimento ?? 0)}
+          </strong>
+          <span className="text-[11.5px] text-muted font-medium block mt-0.5">Sendo acompanhadas</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setStatus(status === 'Concluído' ? '' : 'Concluído');
+            setPage(1);
+          }}
+          className={`text-left p-4.5 rounded-2xl border transition-all duration-150 cursor-pointer ${
+            status === 'Concluído'
+              ? 'bg-emerald-50/50 border-emerald-500 shadow-sm ring-2 ring-emerald-500/20'
+              : 'bg-white border-line shadow-2xs hover:border-zinc-300 hover:shadow-xs'
+          }`}
+        >
+          <div className="flex items-center justify-between text-zinc-900 text-xs font-semibold">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Concluídas
+            </span>
+            <span className="h-8 w-8 rounded-lg grid place-items-center bg-emerald-100 text-emerald-800">
+              <CheckCircle2 size={16} />
+            </span>
+          </div>
+          <strong className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight block mt-2 text-ink">
+            {isLoadingDashboard ? '—' : (dashboard?.concluidas ?? 0)}
+          </strong>
+          <span className="text-[11.5px] text-muted font-medium block mt-0.5">Finalizadas com sucesso</span>
+        </button>
+      </section>
+
       <section className="bg-white border border-line rounded-2xl shadow-sm p-0 overflow-hidden">
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-line max-sm:flex-wrap max-sm:p-[11px] max-sm:gap-[7px]">
-          <label className="h-9 flex items-center gap-2 flex-1 min-w-40 border border-zinc-200 rounded-lg px-2.5 text-zinc-600 bg-white shadow-2xs transition-all focus-within:border-violet-600 focus-within:ring-2 focus-within:ring-violet-600/15 max-sm:basis-full">
-            <Search size={15} className="shrink-0 text-zinc-400" />
-            <input
-              className="min-w-0 flex-1 border-0 outline-none text-ink text-[12.5px] font-medium bg-transparent placeholder:text-zinc-400"
-              aria-label="Buscar solicitações"
-              placeholder="Buscar pelo título…"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
+        <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-line flex-wrap max-sm:p-3">
+          <div className="flex items-center gap-2.5 flex-1 min-w-[280px] max-sm:flex-wrap">
+            <label className="h-9.5 flex items-center gap-2 flex-1 min-w-44 max-w-md border border-zinc-200 rounded-lg px-3 text-zinc-600 bg-white shadow-2xs transition-all focus-within:border-violet-600 focus-within:ring-2 focus-within:ring-violet-600/15 max-sm:basis-full max-sm:max-w-none">
+              <Search size={15} className="shrink-0 text-zinc-400" />
+              <input
+                ref={searchInputRef}
+                className="min-w-0 flex-1 border-0 outline-none text-ink text-[12.5px] font-medium bg-transparent placeholder:text-zinc-400"
+                aria-label="Buscar solicitações"
+                placeholder="Buscar pelo título ou descrição…"
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setPage(1);
+                }}
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="text-zinc-400 hover:text-zinc-700 cursor-pointer"
+                  aria-label="Limpar busca"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </label>
+
+            <CustomSelect
+              variant="toolbar"
+              value={category}
+              onChange={(val) => {
+                setCategory(val);
                 setPage(1);
               }}
+              options={CATEGORIA_FILTER_OPTIONS}
+              leadingIcon={<SlidersHorizontal size={14} />}
+              placeholder="Todas as áreas"
+              ariaLabel="Filtrar por categoria"
             />
-            <kbd className="text-[10px] font-semibold py-[2px] px-1.5 border border-zinc-200 rounded text-zinc-500 bg-zinc-50 whitespace-nowrap">⌘ K</kbd>
-          </label>
 
-          <CustomSelect
-            variant="toolbar"
-            value={category}
-            onChange={(val) => {
-              setCategory(val);
-              setPage(1);
-            }}
-            options={CATEGORIA_FILTER_OPTIONS}
-            leadingIcon={<SlidersHorizontal size={15} />}
-            placeholder="Todas as áreas"
-            ariaLabel="Filtrar por categoria"
-          />
+            <CustomSelect
+              variant="toolbar"
+              value={status}
+              onChange={(val) => {
+                setStatus(val);
+                setPage(1);
+              }}
+              options={STATUS_FILTER_OPTIONS}
+              placeholder="Todos os status"
+              ariaLabel="Filtrar por status"
+            />
 
-          <CustomSelect
-            variant="toolbar"
-            value={status}
-            onChange={(val) => {
-              setStatus(val);
-              setPage(1);
-            }}
-            options={STATUS_FILTER_OPTIONS}
-            placeholder="Todos os status"
-            ariaLabel="Filtrar por status"
-          />
+            {(search || category || status) && (
+              <button
+                className="flex items-center gap-1.5 border-0 bg-violet-50 text-violet-800 text-xs font-bold whitespace-nowrap py-1.5 px-2.5 rounded-lg transition-colors hover:bg-violet-100 hover:text-violet-900 cursor-pointer"
+                onClick={clearFilters}
+              >
+                <CircleX size={14} /> Limpar filtros
+              </button>
+            )}
+          </div>
 
-          {(search || category || status) && (
-            <button
-              className="flex items-center gap-1.5 border-0 bg-transparent text-violet-800 text-xs font-bold whitespace-nowrap py-1.5 px-2 rounded-md transition-colors hover:bg-violet-100 hover:text-violet-900 cursor-pointer max-sm:p-1"
-              onClick={clearFilters}
-            >
-              <CircleX size={15} /> Limpar
-            </button>
-          )}
+          <div className="text-xs font-medium text-muted hidden sm:block">
+            Total listado: <strong className="text-ink font-bold">{data?.total ?? 0}</strong>
+          </div>
         </div>
 
         <div className="w-full overflow-x-auto">
-          <table className="w-full border-collapse text-left min-w-[790px]">
+          <table className="w-full border-collapse text-left min-w-[820px]">
             <thead>
               <tr>
-                <th className="h-10 bg-zinc-100 text-ink text-[11.5px] tracking-wide font-bold px-3.5 border-b border-line first:pl-5">Solicitação</th>
-                <th className="h-10 bg-zinc-100 text-ink text-[11.5px] tracking-wide font-bold px-3.5 border-b border-line w-[130px]">Área</th>
-                <th className="h-10 bg-zinc-100 text-ink text-[11.5px] tracking-wide font-bold px-3.5 border-b border-line w-[140px]">Solicitante</th>
-                <th className="h-10 bg-zinc-100 text-ink text-[11.5px] tracking-wide font-bold px-3.5 border-b border-line w-[130px]">Data</th>
-                <th className="h-10 bg-zinc-100 text-ink text-[11.5px] tracking-wide font-bold px-3.5 border-b border-line w-[140px]">Status</th>
-                <th className="h-10 bg-zinc-100 text-ink text-[11.5px] tracking-wide font-bold px-3.5 border-b border-line last:pr-4.5 last:w-[78px]">
+                <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line first:pl-6">Solicitação</th>
+                <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line w-[140px]">Área</th>
+                <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line w-[160px]">Solicitante</th>
+                <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line w-[140px]">Data</th>
+                <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line w-[160px]">Status</th>
+                <th className="h-10 bg-zinc-50 text-zinc-700 text-[11.5px] uppercase tracking-wider font-bold px-4 border-b border-line last:pr-6 last:w-[88px] text-right">
                   <span className="sr-only">Ações</span>
                 </th>
               </tr>
             </thead>
-            <tbody className="last:[&_td]:border-b-0">
+            <tbody className="last:[&_td]:border-b-0 divide-y divide-line">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="h-[70px] py-2.5 px-3.5 border-b border-line !h-[100px] text-center text-[13px] font-medium text-zinc-800">
-                    Carregando solicitações…
+                  <td colSpan={6} className="h-[120px] py-4 px-4 text-center text-[13px] font-medium text-zinc-600">
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 size={16} className="animate-spin text-violet-700" />
+                      Carregando solicitações…
+                    </div>
                   </td>
                 </tr>
               ) : isError ? (
                 <tr>
-                  <td colSpan={6} className="h-[70px] py-2.5 px-3.5 border-b border-line !h-[100px] text-center text-[13px] font-medium !text-red-700">
+                  <td colSpan={6} className="h-[120px] py-4 px-4 text-center text-[13px] font-medium text-red-700">
                     Não foi possível carregar as solicitações. Tente novamente em instantes.
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="h-[70px] py-2.5 px-3.5 border-b border-line">
-                    <div className="min-h-[260px] flex flex-col justify-center items-center text-center">
-                      <span className="h-[46px] w-[46px] rounded-[13px] bg-violet-100 text-violet-800 grid place-items-center mb-3.5">
-                        <ClipboardList size={22} />
+                  <td colSpan={6} className="py-14 px-6">
+                    <div className="max-w-md mx-auto flex flex-col justify-center items-center text-center">
+                      <span className="h-12 w-12 rounded-2xl bg-violet-100 text-violet-800 grid place-items-center mb-3.5 shadow-2xs">
+                        <ClipboardList size={24} />
                       </span>
-                      <strong className="font-display font-bold text-[15px] text-ink">Nenhum pedido encontrado</strong>
-                      <p className="text-[13px] text-muted font-medium mt-[7px] mb-2">
+                      <strong className="font-display font-bold text-[16px] text-ink">
+                        {search || category || status ? 'Nenhum pedido encontrado' : 'Nenhuma solicitação por aqui ainda'}
+                      </strong>
+                      <p className="text-[13px] text-muted font-medium mt-1.5 mb-4 leading-relaxed">
                         {search || category || status
-                           ? 'Ajuste os filtros e tente de novo.'
-                          : 'Crie a primeira solicitação para começar.'}
+                          ? 'Ajuste ou limpe os filtros de busca para visualizar os registros cadastrados.'
+                          : 'Crie sua primeira solicitação para começar a organizar pedidos e acompanhar o progresso de cada etapa.'}
                       </p>
                       {search || category || status ? (
                         <button
-                          className="border-0 bg-none inline-flex items-center gap-1.5 text-violet-800 font-bold text-[12.5px] py-1 hover:text-violet-900 hover:underline"
+                          className="border-0 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 inline-flex items-center gap-2 text-[12.5px] font-semibold py-2 px-4 rounded-xl transition-all cursor-pointer"
                           onClick={clearFilters}
                         >
-                          Limpar filtros <ArrowRight size={15} />
+                          <CircleX size={15} /> Limpar filtros
                         </button>
                       ) : (
                         <button
-                          className="border-0 bg-none inline-flex items-center gap-1.5 text-violet-800 font-bold text-[12.5px] py-1 hover:text-violet-900 hover:underline"
+                          className="border-0 bg-zinc-900 hover:bg-zinc-800 text-white inline-flex items-center gap-2 text-[12.5px] font-semibold py-2 px-4 rounded-xl shadow-sm transition-all cursor-pointer"
                           onClick={openCreate}
                         >
-                          Criar solicitação <ArrowRight size={15} />
+                          <Plus size={15} /> Criar solicitação
                         </button>
                       )}
                     </div>
@@ -335,23 +484,23 @@ function RequestsPage() {
                   const isOwner = item.usuario_id === user?.userId;
                   const canEdit = isOwner && item.status === 'Aberto';
                   return (
-                    <tr key={item.id} className="hover:bg-zinc-50">
-                      <td className="h-[70px] py-2.5 px-3.5 border-b border-line first:pl-5">
-                        <div className="flex items-center gap-[11px] min-w-[220px]">
+                    <tr key={item.id} className="hover:bg-zinc-50/70 transition-colors">
+                      <td className="py-3 px-4 first:pl-6">
+                        <div className="flex items-center gap-3">
                           <span
-                            className={`w-9 h-9 shrink-0 rounded-[10px] grid place-items-center bg-violet-100 text-violet-800 max-sm:h-8 max-sm:w-8 ${CATEGORY_STYLES[item.categoria.toLowerCase()] ?? ''}`}
+                            className={`w-9 h-9 shrink-0 rounded-xl grid place-items-center bg-violet-100 text-violet-800 max-sm:h-8 max-sm:w-8 ${CATEGORY_STYLES[item.categoria.toLowerCase()] ?? ''}`}
                           >
                             <ClipboardList size={16} />
                           </span>
-                          <div className="min-w-0">
-                            <strong className="block max-w-[280px] truncate text-[13.5px] font-bold text-ink">{item.titulo}</strong>
-                            <small className="block max-w-[280px] truncate text-[11.5px] text-muted font-medium mt-1">
-                              {truncate(item.descricao, 62)}
-                            </small>
+                          <div className="min-w-0 flex-1">
+                            <strong className="block text-[13.5px] font-bold text-ink truncate max-w-md xl:max-w-xl">{item.titulo}</strong>
+                            <p className="text-[12px] text-zinc-500 font-medium mt-0.5 truncate max-w-md xl:max-w-xl">
+                              {item.descricao}
+                            </p>
                           </div>
                         </div>
                       </td>
-                      <td className="h-[70px] py-2.5 px-3.5 border-b border-line w-[130px]">
+                      <td className="py-3 px-4 w-[140px]">
                         <div className="flex items-center gap-1.5 text-zinc-900 text-[12px] font-medium whitespace-nowrap">
                           <span
                             className="h-2 w-2 rounded-full inline-block shrink-0"
@@ -360,24 +509,24 @@ function RequestsPage() {
                           <span>{item.categoria}</span>
                         </div>
                       </td>
-                      <td className="h-[70px] py-2.5 px-3.5 border-b border-line w-[140px]">
+                      <td className="py-3 px-4 w-[160px]">
                         <span className="text-[12.5px] text-zinc-900 font-medium whitespace-nowrap">{item.solicitante ?? '—'}</span>
                       </td>
-                      <td className="h-[70px] py-2.5 px-3.5 border-b border-line w-[130px]">
-                        <span className="text-[12.5px] text-zinc-900 font-medium whitespace-nowrap">{formatDate(item.data_criacao)}</span>
+                      <td className="py-3 px-4 w-[140px]">
+                        <span className="text-[12.5px] text-zinc-600 font-medium whitespace-nowrap">{formatDate(item.data_criacao)}</span>
                       </td>
-                      <td className="h-[70px] py-2.5 px-3.5 border-b border-line w-[140px]">
+                      <td className="py-3 px-4 w-[160px]">
                         <StatusDropdown
                           status={item.status}
                           disabled={updateStatus.isPending && updateStatus.variables?.id === item.id}
                           onChange={(newStatus) => updateStatus.mutate({ id: item.id, status: newStatus })}
                         />
                       </td>
-                      <td className="h-[70px] py-2.5 px-3.5 border-b border-line first:pl-5 last:pr-4.5 last:w-[78px]">
-                        <div className="flex items-center gap-0.5">
+                      <td className="py-3 px-4 last:pr-6 last:w-[88px] text-right">
+                        <div className="flex items-center justify-end gap-1">
                           {canEdit && (
                             <button
-                              className="border-0 bg-transparent rounded-lg text-zinc-800 grid place-items-center h-[30px] w-[30px] transition-all duration-150 hover:bg-zinc-100 hover:text-black"
+                              className="border-0 bg-transparent rounded-lg text-zinc-700 grid place-items-center h-[30px] w-[30px] transition-colors hover:bg-zinc-100 hover:text-black cursor-pointer"
                               title="Editar solicitação"
                               onClick={() => openEdit(item)}
                             >
@@ -386,7 +535,7 @@ function RequestsPage() {
                           )}
                           {canEdit && (
                             <button
-                              className="border-0 bg-transparent rounded-lg text-zinc-800 grid place-items-center h-[30px] w-[30px] transition-all duration-150 hover:!bg-red-100 hover:!text-red-700"
+                              className="border-0 bg-transparent rounded-lg text-zinc-700 grid place-items-center h-[30px] w-[30px] transition-colors hover:!bg-red-50 hover:!text-red-700 cursor-pointer"
                               title="Excluir solicitação"
                               onClick={() => {
                                 if (window.confirm(`Excluir “${item.titulo}”?`)) {
@@ -407,36 +556,36 @@ function RequestsPage() {
           </table>
         </div>
 
-        <div className="min-h-[58px] px-4.5 border-t border-line flex items-center justify-between text-zinc-800 text-xs font-semibold max-sm:px-3 max-sm:text-[11px]">
+        <div className="min-h-[56px] px-6 border-t border-line flex items-center justify-between text-zinc-700 text-xs font-semibold max-sm:px-4 max-sm:text-[11px] bg-zinc-50/50">
           <span>
-            {data?.total ?? 0} {(data?.total ?? 0) === 1 ? 'solicitação encontrada' : 'solicitações encontradas'}
+            Exibindo <strong className="text-ink font-bold">{rows.length}</strong> de <strong className="text-ink font-bold">{data?.total ?? 0}</strong> {(data?.total ?? 0) === 1 ? 'solicitação' : 'solicitações'}
           </span>
           <div className="flex items-center gap-2 max-sm:gap-1.5">
-            <span className="mr-2 max-sm:mr-1">
-              Página <strong className="text-ink font-extrabold">{page}</strong> de <strong className="text-ink font-extrabold">{totalPages}</strong>
+            <span className="mr-2 text-muted max-sm:mr-1">
+              Página <strong className="text-ink font-bold">{page}</strong> de <strong className="text-ink font-bold">{totalPages}</strong>
             </span>
             <button
-              className="h-[30px] w-[30px] grid place-items-center border border-zinc-300 rounded-[7px] bg-white text-ink font-semibold hover:enabled:bg-zinc-100 max-sm:h-7 max-sm:w-7"
+              className="h-8 w-8 grid place-items-center border border-zinc-200 rounded-lg bg-white text-ink font-semibold hover:enabled:bg-zinc-100 disabled:opacity-40 transition-colors shadow-2xs cursor-pointer"
               aria-label="Página anterior"
               disabled={page <= 1 || isLoading}
               onClick={() => setPage((current) => Math.max(1, current - 1))}
             >
-              <ChevronLeft size={17} />
+              <ChevronLeft size={16} />
             </button>
             <button
-              className="h-[30px] w-[30px] grid place-items-center border border-zinc-300 rounded-[7px] bg-white text-ink font-semibold hover:enabled:bg-zinc-100 max-sm:h-7 max-sm:w-7"
+              className="h-8 w-8 grid place-items-center border border-zinc-200 rounded-lg bg-white text-ink font-semibold hover:enabled:bg-zinc-100 disabled:opacity-40 transition-colors shadow-2xs cursor-pointer"
               aria-label="Próxima página"
               disabled={page >= totalPages || isLoading}
               onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
             >
-              <ChevronRight size={17} />
+              <ChevronRight size={16} />
             </button>
           </div>
         </div>
       </section>
 
-      <div className="flex items-center gap-[7px] mt-3 mx-1 text-muted text-[11.5px] font-medium">
-        <ArrowDownUp size={14} /> Os pedidos mais recentes aparecem primeiro.
+      <div className="flex items-center gap-1.5 mt-3 px-1 text-muted text-xs font-medium">
+        <ArrowDownUp size={14} className="text-zinc-400" /> Os pedidos mais recentes aparecem primeiro.
       </div>
 
       {modalOpen && (
@@ -577,8 +726,4 @@ function RequestsPage() {
       )}
     </div>
   );
-}
-
-function truncate(value: string, length: number) {
-  return value.length > length ? `${value.slice(0, length).trimEnd()}…` : value;
 }
