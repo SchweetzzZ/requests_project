@@ -35,7 +35,7 @@ export class authService {
     }
 
     const hashPass = await bcrypt.hash(dto.password, 12);
-    const created = await this.db
+    const [created] = await this.db
       .insert(users)
       .values({
         name: dto.user,
