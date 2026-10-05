@@ -332,4 +332,4 @@ Para avaliar todas as funcionalidades implementadas na aplicação:
 
 ## 6. Documentação Complementar
 * **[MEMORIAL_TECNICO.md](MEMORIAL_TECNICO.md):** Memorial descritivo com fundamentação arquitetural, justificativas das escolhas tecnológicas, análise crítica e roadmap de melhorias.
-* **[DICIONARIO_DE_DADOS.md](docs/DICIONARIO_DE_DADOS.md):** Dicionário de dados com diagrama ER, tabelas, colunas, enums, relacionamentos e regras de negócio que afetam o banco.
+* **[DICIONARIO_DE_DADOS.md](DICIONARIO_DE_DADOS.md):** Dicionário de dados com diagrama ER, tabelas, colunas, enums, relacionamentos e regras de negócio que afetam o banco.
