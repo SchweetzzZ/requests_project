@@ -2,6 +2,14 @@
 
 Plataforma fullstack para abertura, acompanhamento e triagem de solicitações e chamados internos corporativos. A solução foi projetada sob uma arquitetura desacoplada, fortemente tipada de ponta a ponta (*End-to-End Type Safety*), conteinerizada com Docker e pronta para execução imediata sem necessidade de adaptações.
 
+## 🚀 Demonstração (produção)
+
+| | |
+|---|---|
+| **Aplicação** | https://frontend-internal-requests.up.railway.app/login |
+
+**Acesso de teste:** `usuario1` e `usuario2` (senha: `senha123!`)
+
 ## 1. Pré-requisitos
 
 ### 1.1. Linguagem Utilizada
