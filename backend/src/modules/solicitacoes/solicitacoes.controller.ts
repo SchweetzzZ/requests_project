@@ -1,35 +1,7 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiCookieAuth,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards, } from '@nestjs/common';
+import { ApiCookieAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SolicitacoesService } from './solicitacoes.service';
-import {
-  CriarSolicitacaoDto,
-  AtualizarSolicitacaoDto,
-  AlterarStatusSolicitacaoDto,
-  FiltroSolicitacaoDto,
-  SolicitacaoResponseDto,
-  ListagemSolicitacoesResponseDto,
-  DashboardResponseDto,
-  ExcluirSolicitacaoResponseDto,
-} from './dto/solicitacao.dto';
+import { CriarSolicitacaoDto, AtualizarSolicitacaoDto, AlterarStatusSolicitacaoDto, FiltroSolicitacaoDto, SolicitacaoResponseDto, ListagemSolicitacoesResponseDto, DashboardResponseDto, ExcluirSolicitacaoResponseDto, } from './dto/solicitacao.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { currentUser } from '../common/decorator/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.controller';
@@ -39,16 +11,13 @@ import type { AuthenticatedUser } from '../auth/auth.controller';
 @UseGuards(JwtAuthGuard)
 @Controller('solicitacoes')
 export class SolicitacoesController {
-  constructor(private readonly solicitacoesService: SolicitacoesService) {}
+  constructor(private readonly solicitacoesService: SolicitacoesService) { }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Criar uma nova solicitação' })
   @ApiCreatedResponse({ type: SolicitacaoResponseDto })
-  async create(
-    @Body() dto: CriarSolicitacaoDto,
-    @currentUser() user: AuthenticatedUser,
-  ) {
+  async create(@Body() dto: CriarSolicitacaoDto, @currentUser() user: AuthenticatedUser) {
     return this.solicitacoesService.create(dto, user.userId);
   }
 
@@ -80,11 +49,7 @@ export class SolicitacoesController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Atualizar dados de uma solicitação' })
   @ApiOkResponse({ type: SolicitacaoResponseDto })
-  async update(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: AtualizarSolicitacaoDto,
-    @currentUser() user: AuthenticatedUser,
-  ) {
+  async update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: AtualizarSolicitacaoDto, @currentUser() user: AuthenticatedUser,) {
     return this.solicitacoesService.update(id, dto, user.userId);
   }
 
@@ -92,10 +57,7 @@ export class SolicitacoesController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Atualizar status de uma solicitação' })
   @ApiOkResponse({ type: SolicitacaoResponseDto })
-  async updateStatus(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: AlterarStatusSolicitacaoDto,
-  ) {
+  async updateStatus(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: AlterarStatusSolicitacaoDto) {
     return this.solicitacoesService.updateStatus(id, dto);
   }
 
@@ -103,10 +65,7 @@ export class SolicitacoesController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Excluir uma solicitação' })
   @ApiOkResponse({ type: ExcluirSolicitacaoResponseDto })
-  async delete(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @currentUser() user: AuthenticatedUser,
-  ) {
+  async delete(@Param('id', new ParseUUIDPipe()) id: string, @currentUser() user: AuthenticatedUser) {
     return this.solicitacoesService.delete(id, user.userId);
   }
 }

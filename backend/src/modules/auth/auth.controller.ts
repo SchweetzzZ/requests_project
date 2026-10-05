@@ -1,29 +1,8 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiCookieAuth,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
+import { ApiCookieAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Response, CookieOptions } from 'express';
 import { authService } from './auth.service';
-import {
-  loginDto,
-  registerDto,
-  LoginResponseDto,
-  LogoutResponseDto,
-  MeResponseDto,
-} from './dto/auth.dto';
+import { loginDto, registerDto, LoginResponseDto, LogoutResponseDto, MeResponseDto } from './dto/auth.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { currentUser } from '../common/decorator/current-user.decorator';
 
@@ -35,7 +14,7 @@ export interface AuthenticatedUser {
 @ApiTags('Autenticação')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: authService) {}
+  constructor(private readonly authService: authService) { }
 
   private getCookieOptions(): CookieOptions {
     const isProd = process.env.NODE_ENV === 'production';
@@ -61,10 +40,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Realizar login' })
   @ApiOkResponse({ type: LoginResponseDto })
-  async login(
-    @Body() dto: loginDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async login(@Body() dto: loginDto, @Res({ passthrough: true }) res: Response) {
     const { access_token } = await this.authService.login(dto);
 
     res.cookie('access_token', access_token, this.getCookieOptions());

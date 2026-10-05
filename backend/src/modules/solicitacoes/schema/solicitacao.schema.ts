@@ -1,11 +1,4 @@
-import {
-  integer,
-  pgEnum,
-  pgTable,
-  uuid,
-  varchar,
-  timestamp,
-} from 'drizzle-orm/pg-core';
+import { integer, pgEnum, pgTable, uuid, varchar, timestamp } from 'drizzle-orm/pg-core';
 import { users } from '../../auth/schema/schema';
 
 export const categoriaSolicitacaoEnum = pgEnum('categoria_solicitacao', [

@@ -25,7 +25,7 @@ Escolha **uma** das duas formas de executar o projeto:
 | **Indicada para** | Avaliar a aplicação rapidamente | Desenvolver (hot reload) |
 | **O que precisa instalar** | Apenas Docker | Node.js 22+ e Docker (só para o banco) |
 | **Comando principal** | `docker compose up --build` | `npm run start:dev` (back) + `npm run dev` (front) |
-| **Arquivo `.env` usado** | **Um só, na raiz do projeto** | **Um em `backend/` e outro em `frontend/`** |
+| **Arquivo `.env` usado** | **Opcional**: um só, na raiz (o compose já traz padrões) | **Um em `backend/` e outro em `frontend/`** |
 | **Frontend em** | http://localhost | http://localhost:5173 |
 
 > Primeiro, clone o repositório (vale para as duas opções):
@@ -41,9 +41,14 @@ Escolha **uma** das duas formas de executar o projeto:
 
 Sobe Banco, Backend e Frontend já integrados, sem instalar Node.js nem configurar banco na sua máquina.
 
-O Docker Compose lê **somente o `.env` da raiz** do projeto. Os arquivos `backend/.env` e `frontend/.env` **não são usados** neste modo.
+> ✅ **Não é necessário criar nenhum `.env` para testar.** O `docker-compose.yml` já traz valores padrão (*fallbacks*) para todas as variáveis (banco de dados, JWT, usuários de demonstração etc.), então basta rodar `docker compose up --build`.
+>
+> Se preferir usar valores próprios (outra senha, outra porta, outro `JWT_SECRET`), crie um `.env` na raiz a partir do `.env.example` e ajuste. Quando ele existe, o Compose o usa no lugar dos padrões.
+>
+> ⚠️ Os valores padrão são pensados apenas para teste local.
+O Docker Compose lê **somente o `.env` da raiz** do projeto (quando existir). Os arquivos `backend/.env` e `frontend/.env` **não são usados** neste modo.
 
-1. **Crie o `.env` da raiz a partir do exemplo:**
+1. **(Opcional) Personalize com um `.env` na raiz:**
    ```bash
    # Windows (PowerShell)
    Copy-Item .env.example .env
@@ -69,14 +74,14 @@ O Docker Compose lê **somente o `.env` da raiz** do projeto. Os arquivos `backe
 
 Neste modo, **só o banco roda no Docker**; backend e frontend rodam direto no seu terminal, com recarga automática a cada alteração.
 
-Aqui o `.env` da raiz serve apenas para o container do PostgreSQL (`POSTGRES_*`). Backend e frontend usam **cada um o seu próprio `.env`**, que você cria manualmente.
+Aqui o `.env` da raiz é opcional e serve apenas para o container do PostgreSQL (`POSTGRES_*`); sem ele valem os padrões do compose (`postgres` / `postgrespassword` / `requests_db`). Backend e frontend usam **cada um o seu próprio `.env`**, que você cria manualmente, e o `DATABASE_URL` do `backend/.env` deve usar o mesmo usuário, senha e nome de banco do container.
 
 **Pré-requisitos:** Node.js 22+, npm 10+ e Docker (apenas para o banco).
 
 #### Passo 1: Banco de dados
 
 ```bash
-# Na raiz do projeto (crie o .env da raiz antes, como na Opção A)
+# Na raiz do projeto (o .env da raiz é opcional; sem ele valem os padrões do compose)
 docker compose up -d postgres
 ```
 
@@ -141,8 +146,8 @@ Frontend em http://localhost:5173 e API em http://localhost:3000 (Swagger em `/d
 
 | Modo | `.env` raiz | `backend/.env` | `frontend/.env` |
 |---|---|---|---|
-| **Opção A:** `docker compose up --build` | ✅ usado por todos os serviços | ❌ ignorado | ❌ ignorado |
-| **Opção B:** local (`start:dev` + `dev`) | ✅ só para o container do Postgres | ✅ obrigatório | ✅ obrigatório |
+| **Opção A:** `docker compose up --build` | ⚙️ opcional (sem ele valem os padrões do compose) | ❌ ignorado | ❌ ignorado |
+| **Opção B:** local (`start:dev` + `dev`) | ⚙️ opcional, só para o container do Postgres | ✅ obrigatório | ✅ obrigatório |
 
 ---
 
@@ -201,6 +206,8 @@ Para rodar a aplicação pronta de ponta a ponta (Banco + Backend + Frontend int
 ```bash
 docker compose up --build
 ```
+> Não é preciso criar `.env`: o `docker-compose.yml` já traz valores padrão para teste (veja a [seção 2.1](#21-opção-a-docker-compose-recomendada-mais-rápida)).
+>
 > Para rodar em segundo plano (*detached mode*), adicione `-d`: `docker compose up -d --build`.  
 > Para encerrar a execução: `docker compose down`.
 
@@ -233,6 +240,13 @@ npm run dev
 npm run build
 npm run preview
 ```
+
+#### ● Atualizar os tipos da API (apenas se o backend mudar)
+O arquivo `frontend/src/api/schema.ts` já está versionado no repositório, então **não é necessário gerá-lo** para rodar ou avaliar o projeto. Se você alterar rotas ou DTOs do backend, com o backend rodando em `http://localhost:3000`, execute no diretório `/frontend`:
+```bash
+npm run generate:api
+```
+O comando lê o contrato OpenAPI em `/docs-json` e regenera os tipos usados pelo `openapi-fetch`.
 
 ---
 

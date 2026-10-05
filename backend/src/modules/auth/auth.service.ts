@@ -1,17 +1,7 @@
-import {
-  ConflictException,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ConflictException, Inject, Injectable, UnauthorizedException, } from '@nestjs/common';
 import { DRIZZLE, type DrizzleDB } from '../db/db.constants';
 import { users } from './schema/schema';
-import {
-  loginDto,
-  registerDto,
-  jwtPayloadSchema,
-  type JwtPayload,
-} from './dto/auth.dto';
+import { loginDto, registerDto, jwtPayloadSchema, type JwtPayload } from './dto/auth.dto';
 import * as bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
 import { JwtService } from '@nestjs/jwt';
@@ -21,7 +11,7 @@ export class authService {
   constructor(
     @Inject(DRIZZLE) readonly db: DrizzleDB,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async register(dto: registerDto) {
     const existingUser = await this.db.query.users.findFirst({
@@ -35,16 +25,13 @@ export class authService {
     }
 
     const hashPass = await bcrypt.hash(dto.password, 12);
-    const [created] = await this.db
-      .insert(users)
-      .values({
-        name: dto.user,
-        password: hashPass,
-      })
-      .returning({
-        id: users.id,
-        name: users.name,
-      });
+    const [created] = await this.db.insert(users).values({
+      name: dto.user,
+      password: hashPass,
+    }).returning({
+      id: users.id,
+      name: users.name,
+    });
 
     return created;
   }
