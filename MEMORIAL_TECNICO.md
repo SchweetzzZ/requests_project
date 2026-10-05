@@ -89,11 +89,17 @@ O projeto adota uma estrutura em repositório único dividido por domínios (`/b
 
 ### 4.3. Melhorias Futuras
 * **Controle de Acesso Baseado em Funções (RBAC Completo):** Implementação de perfis de usuário (`SOLICITANTE`, `ATENDENTE`, `ADMIN`) com permissões validadas no backend através de decoradores customizados e de um `RolesGuard` dedicado no NestJS.
+
 * **Sessão com Refresh Token e Login Social (SSO):** Adoção de Refresh Tokens rotativos armazenados em banco ou Redis para renovação silenciosa de sessão. Em um contexto corporativo, integração com provedores de identidade OAuth2.
+
 * **Painel Administrativo e Métricas:** Criação de um dashboard gerencial com indicadores-chave de desempenho (KPIs), como Tempo Médio de Atendimento (TMA), volume de solicitações por categoria e gargalos departamentais.
+
 * **Operações em Lote e Relatórios:** Suporte a importação massiva de solicitações via upload e processamento de planilhas (CSV/XLSX), além de exportação de dados filtrados para relatórios em PDF e Excel.
+
 * **Organização do Monorepo e Orquestração de Builds:** Com o crescimento da aplicação, poderia ser adotado o npm workspaces para centralizar a gestão das dependências e facilitar o compartilhamento de pacotes entre frontend e backend. Caso o número de aplicações e a complexidade do pipeline aumentassem, ferramentas como Turborepo poderiam otimizar a execução e o cache de builds e testes.
+
 ***Limite de Requisições (Rate Limiting):*** O endpoint `POST /auth/login` não limita o número de tentativas, o que o deixa exposto a ataques de brute force. Uma melhoria seria adotar o `@nestjs/throttler`: registrar o `ThrottlerModule` com um `ThrottlerGuard` global e usar o decorator `@Throttle()` para aplicar limites mais rígidos ao login e ao cadastro (por exemplo, poucas tentativas por minuto por IP). Conforme o projeto escalasse, o limite seria estendido às demais rotas, com valores ajustados ao perfil de uso de cada uma e, caso a API passasse a rodar em várias cópias ao mesmo tempo, o registro das tentativas ficaria em um local compartilhado (como o Redis). Sem isso, cada cópia contaria as tentativas por conta própria, e o limite efetivo acabaria multiplicado pelo número de cópias.
+
 ***Filtro Global de Exceções:*** Hoje os erros são tratados pelo comportamento padrão do NestJS e pelo pipe de validação do Zod, e o formato da resposta pode variar conforme a origem do erro. Uma melhoria seria criar um filtro global de exceções (*Exception Filter* do NestJS, com `@Catch()` registrado como `APP_FILTER`) para capturar `HttpException`, erros de validação e falhas inesperadas (como erros do banco), padronizando o corpo da resposta (`statusCode`, `message`, `error`, `path` e `timestamp`), registrando logs estruturados e evitando expor detalhes internos em erros 500. Isso também facilitaria o tratamento uniforme das mensagens no frontend.
 
 ### 4.4. Decisões que Seriam Diferentes em um Ambiente Corporativo de Produção
