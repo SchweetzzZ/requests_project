@@ -1,39 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import {
-  AlertCircle,
-  ArrowDownUp,
-  ArrowRight,
-  Check,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  CircleDashed,
-  CircleX,
-  ClipboardList,
-  Clock3,
-  Copy,
-  Eye,
-  FilePlus2,
-  Layers,
-  Loader2,
-  Pencil,
-  Plus,
-  Search,
-  SlidersHorizontal,
-  Trash2,
-  X,
+  AlertCircle, ArrowDownUp, ArrowRight, Check, CheckCircle2, ChevronLeft, ChevronRight,
+  CircleDashed, CircleX, ClipboardList, Clock3, Copy, Eye,
+  FilePlus2, Layers, Loader2, Pencil, Plus, Search, SlidersHorizontal, Trash2, X,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import {
-  useAlterarStatus,
-  useAtualizarSolicitacao,
-  useCriarSolicitacao,
-  useDashboard,
-  useExcluirSolicitacao,
-  useSolicitacao,
-  useSolicitacoes,
-} from '../hooks/useSolicitacoes';
+import { useAlterarStatus, useAtualizarSolicitacao, useCriarSolicitacao, useDashboard, useExcluirSolicitacao, useSolicitacao, useSolicitacoes } from '../hooks/useSolicitacoes';
 import type { SolicitacaoListItem } from '../services/solicitacoes.service';
 import type { components } from '../api/schema';
 import { CATEGORY_STYLES, formatDate } from './index';
@@ -312,11 +285,10 @@ function RequestsPage() {
             setStatus('');
             setPage(1);
           }}
-          className={`text-left p-4.5 rounded-2xl border transition-all duration-150 cursor-pointer ${
-            status === ''
-              ? 'bg-white border-violet-600 shadow-sm ring-2 ring-violet-600/15'
-              : 'bg-white border-line shadow-2xs hover:border-zinc-300 hover:shadow-xs'
-          }`}
+          className={`text-left p-4.5 rounded-2xl border transition-all duration-150 cursor-pointer ${status === ''
+            ? 'bg-white border-violet-600 shadow-sm ring-2 ring-violet-600/15'
+            : 'bg-white border-line shadow-2xs hover:border-zinc-300 hover:shadow-xs'
+            }`}
         >
           <div className="flex items-center justify-between text-zinc-900 text-xs font-semibold">
             <span>Total de solicitações</span>
@@ -336,11 +308,10 @@ function RequestsPage() {
             setStatus(status === 'Aberto' ? '' : 'Aberto');
             setPage(1);
           }}
-          className={`text-left p-4.5 rounded-2xl border transition-all duration-150 cursor-pointer ${
-            status === 'Aberto'
-              ? 'bg-amber-50/50 border-amber-500 shadow-sm ring-2 ring-amber-500/20'
-              : 'bg-white border-line shadow-2xs hover:border-zinc-300 hover:shadow-xs'
-          }`}
+          className={`text-left p-4.5 rounded-2xl border transition-all duration-150 cursor-pointer ${status === 'Aberto'
+            ? 'bg-amber-50/50 border-amber-500 shadow-sm ring-2 ring-amber-500/20'
+            : 'bg-white border-line shadow-2xs hover:border-zinc-300 hover:shadow-xs'
+            }`}
         >
           <div className="flex items-center justify-between text-zinc-900 text-xs font-semibold">
             <span className="flex items-center gap-1.5">
@@ -363,11 +334,10 @@ function RequestsPage() {
             setStatus(status === 'Em Atendimento' ? '' : 'Em Atendimento');
             setPage(1);
           }}
-          className={`text-left p-4.5 rounded-2xl border transition-all duration-150 cursor-pointer ${
-            status === 'Em Atendimento'
-              ? 'bg-sky-50/50 border-sky-500 shadow-sm ring-2 ring-sky-500/20'
-              : 'bg-white border-line shadow-2xs hover:border-zinc-300 hover:shadow-xs'
-          }`}
+          className={`text-left p-4.5 rounded-2xl border transition-all duration-150 cursor-pointer ${status === 'Em Atendimento'
+            ? 'bg-sky-50/50 border-sky-500 shadow-sm ring-2 ring-sky-500/20'
+            : 'bg-white border-line shadow-2xs hover:border-zinc-300 hover:shadow-xs'
+            }`}
         >
           <div className="flex items-center justify-between text-zinc-900 text-xs font-semibold">
             <span className="flex items-center gap-1.5">
@@ -390,11 +360,10 @@ function RequestsPage() {
             setStatus(status === 'Concluído' ? '' : 'Concluído');
             setPage(1);
           }}
-          className={`text-left p-4.5 rounded-2xl border transition-all duration-150 cursor-pointer ${
-            status === 'Concluído'
-              ? 'bg-emerald-50/50 border-emerald-500 shadow-sm ring-2 ring-emerald-500/20'
-              : 'bg-white border-line shadow-2xs hover:border-zinc-300 hover:shadow-xs'
-          }`}
+          className={`text-left p-4.5 rounded-2xl border transition-all duration-150 cursor-pointer ${status === 'Concluído'
+            ? 'bg-emerald-50/50 border-emerald-500 shadow-sm ring-2 ring-emerald-500/20'
+            : 'bg-white border-line shadow-2xs hover:border-zinc-300 hover:shadow-xs'
+            }`}
         >
           <div className="flex items-center justify-between text-zinc-900 text-xs font-semibold">
             <span className="flex items-center gap-1.5">
