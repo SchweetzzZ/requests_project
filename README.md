@@ -18,16 +18,32 @@ Plataforma fullstack para abertura, acompanhamento e triagem de solicitações e
 
 ## 2. Instalação
 
-### 2.1. Execução Automatizada via Docker Compose (Recomendada)
-Para avaliar e utilizar a aplicação plena de forma imediata (sem necessidade de configurar Node.js ou banco no host), o Docker Compose provisiona e integra os 3 componentes (Banco PostgreSQL, Backend e Frontend):
+Escolha **uma** das duas formas de executar o projeto:
 
-1. **Clone o repositório:**
-   ```bash
-   git clone https://github.com/SchweetzzZ/requests_project.git
-   cd requests_project
-   ```
+| | Opção A: Docker Compose | Opção B: Local (sem Docker para o app) |
+|---|---|---|
+| **Indicada para** | Avaliar a aplicação rapidamente | Desenvolver (hot reload) |
+| **O que precisa instalar** | Apenas Docker | Node.js 22+ e Docker (só para o banco) |
+| **Comando principal** | `docker compose up --build` | `npm run start:dev` (back) + `npm run dev` (front) |
+| **Arquivo `.env` usado** | **Um só, na raiz do projeto** | **Um em `backend/` e outro em `frontend/`** |
+| **Frontend em** | http://localhost | http://localhost:5173 |
 
-2. **Crie o arquivo `.env`:**
+> Primeiro, clone o repositório (vale para as duas opções):
+>
+> ```bash
+> git clone https://github.com/SchweetzzZ/requests_project.git
+> cd requests_project
+> ```
+
+---
+
+### 2.1. Opção A: Docker Compose (recomendada, mais rápida)
+
+Sobe Banco, Backend e Frontend já integrados, sem instalar Node.js nem configurar banco na sua máquina.
+
+O Docker Compose lê **somente o `.env` da raiz** do projeto. Os arquivos `backend/.env` e `frontend/.env` **não são usados** neste modo.
+
+1. **Crie o `.env` da raiz a partir do exemplo:**
    ```bash
    # Windows (PowerShell)
    Copy-Item .env.example .env
@@ -36,45 +52,97 @@ Para avaliar e utilizar a aplicação plena de forma imediata (sem necessidade d
    cp .env.example .env
    ```
 
-3. **Suba todo o ambiente:**
+2. **Suba tudo:**
    ```bash
    docker compose up --build
    ```
-   > **Nota:** As migrações do banco são aplicadas automaticamente no bootstrap do backend (`RUN_MIGRATIONS=true`). Backend, Frontend e Banco já sobem integrados e funcionais.
+
+3. **Acesse** http://localhost (veja a seção [5. Acesso](#5-acesso) para os usuários de teste).
+
+> As migrações e a criação dos usuários de demonstração rodam automaticamente na subida do backend (`RUN_MIGRATIONS=true`).
+>
+> Para rodar em segundo plano, use `docker compose up -d --build`. Para encerrar, `docker compose down`.
 
 ---
 
-### 2.2. Instalação Manual Passo a Passo (Ambiente de Desenvolvimento)
-Caso queira rodar os serviços individualmente no terminal para desenvolvimento:
+### 2.2. Opção B: Execução local para desenvolvimento
 
-#### ● Banco de Dados
-Inicie o serviço do PostgreSQL pelo Docker (ou utilize uma instância local na porta 5432):
+Neste modo, **só o banco roda no Docker**; backend e frontend rodam direto no seu terminal, com recarga automática a cada alteração.
+
+Aqui o `.env` da raiz serve apenas para o container do PostgreSQL (`POSTGRES_*`). Backend e frontend usam **cada um o seu próprio `.env`**, que você cria manualmente.
+
+**Pré-requisitos:** Node.js 22+, npm 10+ e Docker (apenas para o banco).
+
+#### Passo 1: Banco de dados
+
 ```bash
+# Na raiz do projeto (crie o .env da raiz antes, como na Opção A)
 docker compose up -d postgres
 ```
 
-#### ● Backend
-1. Acesse o diretório e instale as dependências:
-   ```bash
-   cd backend
-   npm install
-   ```
-2. Crie o arquivo `backend/.env` com as configurações de banco (vide seção [Configuração](#3-configuração)). Para criar os usuários de demonstração, inclua também `RUN_MIGRATIONS=true`, `DEMO_USERS=usuario1,usuario2` e `DEMO_PASSWORD=Senha123!`.
-3. Execute as migrações no banco:
-   ```bash
-   npm run db:migrate
-   ```
+#### Passo 2: Backend
 
-#### ● Frontend
-1. Acesse o diretório e instale as dependências:
-   ```bash
-   cd frontend
-   npm install
-   ```
-2. Crie o arquivo `frontend/.env` apontando para a API:
-   ```env
-   VITE_API_URL=http://localhost:3000
-   ```
+```bash
+cd backend
+npm install
+```
+
+Crie o arquivo `backend/.env`:
+
+```env
+NODE_ENV=development
+PORT=3000
+DATABASE_URL=postgres://postgres:postgrespassword@localhost:5432/requests_db
+CORS_ORIGIN=http://localhost:5173
+JWT_SECRET=your_super_secret_jwt_key
+RUN_MIGRATIONS=true
+DEMO_USERS=usuario1,usuario2
+DEMO_PASSWORD=Senha123!
+```
+
+> ⚠️ **Atenção ao host do banco:** fora do Docker, o host em `DATABASE_URL` é **`localhost`** (no `.env` da raiz é `postgres`, o nome do serviço dentro da rede do Compose). Usuário, senha e nome do banco devem ser os mesmos definidos em `POSTGRES_*` na raiz.
+
+Inicie o backend:
+
+```bash
+npm run start:dev
+```
+
+Com `RUN_MIGRATIONS=true`, as migrações e os usuários de demonstração são aplicados automaticamente ao iniciar. Se preferir rodar as migrações manualmente, deixe `RUN_MIGRATIONS=false` e execute `npm run db:migrate`.
+
+#### Passo 3: Frontend
+
+Em **outro terminal**:
+
+```bash
+cd frontend
+npm install
+```
+
+Crie o arquivo `frontend/.env`:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+Inicie o frontend:
+
+```bash
+npm run dev
+```
+
+#### Passo 4: Acessar
+
+Frontend em http://localhost:5173 e API em http://localhost:3000 (Swagger em `/docs`).
+
+---
+
+### Resumo: qual `.env` usar em cada caso
+
+| Modo | `.env` raiz | `backend/.env` | `frontend/.env` |
+|---|---|---|---|
+| **Opção A:** `docker compose up --build` | ✅ usado por todos os serviços | ❌ ignorado | ❌ ignorado |
+| **Opção B:** local (`start:dev` + `dev`) | ✅ só para o container do Postgres | ✅ obrigatório | ✅ obrigatório |
 
 ---
 
